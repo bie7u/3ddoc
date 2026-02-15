@@ -185,10 +185,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       return step;
     });
     
-    set({ 
-      project: { ...project, steps: updatedSteps },
-      selectedStepId: get().selectedStepId === substepId ? parentId : get().selectedStepId
-    });
+    set({ project: { ...project, steps: updatedSteps } });
     get().saveToLocalStorage();
   },
 }));
