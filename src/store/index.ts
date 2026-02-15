@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import type { Edge } from 'reactflow';
-import type { InstructionStep, ProjectData } from '../types';
+import type { InstructionStep, ProjectData, StepEdge } from '../types';
 
 interface AppStore {
   // Project data
@@ -22,7 +21,7 @@ interface AppStore {
   updateStep: (id: string, updates: Partial<InstructionStep>) => void;
   deleteStep: (id: string) => void;
   setSelectedStepId: (id: string | null) => void;
-  updateConnections: (edges: Edge[]) => void;
+  updateConnections: (edges: StepEdge[]) => void;
   updateNodePosition: (id: string, position: { x: number; y: number }) => void;
   setPreviewMode: (isPreview: boolean) => void;
   setCurrentPreviewStepIndex: (index: number) => void;

@@ -25,11 +25,19 @@ export interface InstructionStep {
   highlightColor?: string;
 }
 
+export type EdgeStyle = 'default' | 'glow' | 'glass' | 'dashed';
+
+export interface StepEdgeData {
+  style?: EdgeStyle;
+}
+
+export type StepEdge = Edge<StepEdgeData>;
+
 export interface ProjectData {
   id: string;
   name: string;
   steps: InstructionStep[];
-  connections: Edge[];
+  connections: StepEdge[];
 }
 
 export type StepNode = Node<InstructionStep>;
