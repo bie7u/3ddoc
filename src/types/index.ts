@@ -19,6 +19,8 @@ export type ConnectionStyle = 'standard' | 'glass' | 'glow' | 'neon';
 
 export interface ConnectionData {
   style?: ConnectionStyle;
+  description?: string;
+  showCube?: boolean;
 }
 
 export interface InstructionStep {

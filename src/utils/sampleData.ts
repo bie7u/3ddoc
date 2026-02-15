@@ -47,12 +47,12 @@ export const sampleProject: ProjectData = {
   ],
   connections: [
     // Step 1 branches into two parallel steps (2a and 2b)
-    { id: 'e1-2a', source: 'step-1', target: 'step-2a', data: { style: 'glass' } },
-    { id: 'e1-2b', source: 'step-1', target: 'step-2b', data: { style: 'glow' } },
+    { id: 'e1-2a', source: 'step-1', target: 'step-2a', data: { style: 'glass', description: 'Follow this path to identify main frame components' } },
+    { id: 'e1-2b', source: 'step-1', target: 'step-2b', data: { style: 'glow', description: 'This path leads to fasteners and connectors identification', showCube: true } },
     // Both parallel steps converge into step 3
-    { id: 'e2a-3', source: 'step-2a', target: 'step-3', data: { style: 'neon' } },
-    { id: 'e2b-3', source: 'step-2b', target: 'step-3', data: { style: 'standard' } },
+    { id: 'e2a-3', source: 'step-2a', target: 'step-3', data: { style: 'neon', description: 'Connect frame parts to the assembly', showCube: true } },
+    { id: 'e2b-3', source: 'step-2b', target: 'step-3', data: { style: 'standard', description: 'Add fasteners to secure the assembly' } },
     // Step 3 to final step
-    { id: 'e3-4', source: 'step-3', target: 'step-4', data: { style: 'glass' } },
+    { id: 'e3-4', source: 'step-3', target: 'step-4', data: { style: 'glass', description: 'Proceed to final quality check', showCube: true } },
   ],
 };
