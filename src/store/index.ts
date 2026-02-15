@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Edge } from 'reactflow';
-import type { InstructionStep, ProjectData } from '../types';
+import type { InstructionStep, ProjectData, SubStep } from '../types';
 
 interface AppStore {
   // Project data
@@ -24,6 +24,9 @@ interface AppStore {
   setCurrentPreviewStepIndex: (index: number) => void;
   saveToLocalStorage: () => void;
   loadFromLocalStorage: () => void;
+  addSubStep: (stepId: string, substep: SubStep) => void;
+  updateSubStep: (stepId: string, substepId: string, updates: Partial<SubStep>) => void;
+  deleteSubStep: (stepId: string, substepId: string) => void;
 }
 
 const STORAGE_KEY = '3ddoc-project';
@@ -127,5 +130,64 @@ export const useAppStore = create<AppStore>((set, get) => ({
         console.error('Failed to load project from localStorage', error);
       }
     }
+  },
+
+  addSubStep: (stepId, substep) => {
+    const { project } = get();
+    if (!project) return;
+    
+    const updatedProject = {
+      ...project,
+      steps: project.steps.map((step) =>
+        step.id === stepId
+          ? { ...step, substeps: [...(step.substeps || []), substep] }
+          : step
+      ),
+    };
+    
+    set({ project: updatedProject });
+    get().saveToLocalStorage();
+  },
+
+  updateSubStep: (stepId, substepId, updates) => {
+    const { project } = get();
+    if (!project) return;
+    
+    const updatedProject = {
+      ...project,
+      steps: project.steps.map((step) =>
+        step.id === stepId
+          ? {
+              ...step,
+              substeps: (step.substeps || []).map((substep) =>
+                substep.id === substepId ? { ...substep, ...updates } : substep
+              ),
+            }
+          : step
+      ),
+    };
+    
+    set({ project: updatedProject });
+    get().saveToLocalStorage();
+  },
+
+  deleteSubStep: (stepId, substepId) => {
+    const { project } = get();
+    if (!project) return;
+    
+    const updatedProject = {
+      ...project,
+      steps: project.steps.map((step) =>
+        step.id === stepId
+          ? {
+              ...step,
+              substeps: (step.substeps || []).filter((substep) => substep.id !== substepId),
+            }
+          : step
+      ),
+    };
+    
+    set({ project: updatedProject });
+    get().saveToLocalStorage();
   },
 }));

@@ -11,6 +11,38 @@ interface StepCubeProps {
   isActive: boolean;
 }
 
+// Substep cube component
+interface SubStepCubeProps {
+  substep: { id: string; title: string; description: string };
+  position: [number, number, number];
+  color: string;
+  isParentActive: boolean;
+}
+
+const SubStepCube = ({ position, color, isParentActive }: SubStepCubeProps) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  
+  useFrame((state) => {
+    if (meshRef.current && isParentActive) {
+      // Gentle bobbing animation for substeps
+      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 1.5) * 0.1;
+    }
+  });
+
+  return (
+    <mesh ref={meshRef} position={position}>
+      <boxGeometry args={[0.5, 0.5, 0.5]} />
+      <meshStandardMaterial 
+        color={color} 
+        emissive={isParentActive ? color : '#000000'}
+        emissiveIntensity={isParentActive ? 0.4 : 0}
+        opacity={isParentActive ? 1 : 0.6}
+        transparent
+      />
+    </mesh>
+  );
+};
+
 // Individual step cube component
 const StepCube = ({ step, position, isActive }: StepCubeProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -30,6 +62,18 @@ const StepCube = ({ step, position, isActive }: StepCubeProps) => {
   });
 
   const color = step.highlightColor || '#4299e1';
+
+  // Calculate substep positions in a circle around the main cube
+  const substeps = step.substeps || [];
+  const substepPositions = substeps.map((_, index) => {
+    const angle = (index / substeps.length) * Math.PI * 2;
+    const radius = 2;
+    return [
+      position[0] + Math.cos(angle) * radius,
+      position[1],
+      position[2] + Math.sin(angle) * radius
+    ] as [number, number, number];
+  });
 
   return (
     <group position={position}>
@@ -55,6 +99,17 @@ const StepCube = ({ step, position, isActive }: StepCubeProps) => {
           />
         </mesh>
       )}
+      
+      {/* Render substeps */}
+      {substeps.map((substep, index) => (
+        <SubStepCube
+          key={substep.id}
+          substep={substep}
+          position={substepPositions[index]}
+          color={color}
+          isParentActive={isActive}
+        />
+      ))}
     </group>
   );
 };
@@ -257,6 +312,21 @@ export const Viewer3D = ({ project, currentStepId }: Viewer3DProps) => {
         <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white p-4 rounded-lg max-w-md">
           <h3 className="text-lg font-bold mb-2">{currentStep.title}</h3>
           <p className="text-sm">{currentStep.description}</p>
+          
+          {/* Display substeps */}
+          {currentStep.substeps && currentStep.substeps.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-500">
+              <h4 className="text-sm font-semibold mb-2">Substeps:</h4>
+              <ol className="text-xs space-y-1">
+                {currentStep.substeps.map((substep, index) => (
+                  <li key={substep.id} className="ml-4">
+                    <span className="font-medium">{index + 1}. {substep.title}</span>
+                    <span className="text-gray-300"> - {substep.description}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </div>
       )}
     </div>

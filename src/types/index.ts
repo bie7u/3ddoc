@@ -15,6 +15,12 @@ export interface Annotation {
   text: string;
 }
 
+export interface SubStep {
+  id: string;
+  title: string;
+  description: string;
+}
+
 export interface InstructionStep {
   id: string;
   title: string;
@@ -23,6 +29,7 @@ export interface InstructionStep {
   cameraPosition: CameraPosition;
   annotations?: Annotation[];
   highlightColor?: string;
+  substeps?: SubStep[];
 }
 
 export interface ProjectData {

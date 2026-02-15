@@ -11,6 +11,18 @@ export const sampleProject: ProjectData = {
       modelPath: 'box', // Using procedural geometry
       cameraPosition: { x: 5, y: 5, z: 5, targetX: 0, targetY: 0, targetZ: 0 },
       highlightColor: '#4299e1',
+      substeps: [
+        {
+          id: 'substep-1-1',
+          title: 'Review tools',
+          description: 'Make sure you have all necessary tools'
+        },
+        {
+          id: 'substep-1-2',
+          title: 'Safety check',
+          description: 'Review safety guidelines'
+        }
+      ]
     },
     {
       id: 'step-2',
@@ -19,6 +31,23 @@ export const sampleProject: ProjectData = {
       modelPath: 'box',
       cameraPosition: { x: 3, y: 4, z: 6, targetX: 0, targetY: 0, targetZ: 0 },
       highlightColor: '#48bb78',
+      substeps: [
+        {
+          id: 'substep-2-1',
+          title: 'Count parts',
+          description: 'Verify all parts are present'
+        },
+        {
+          id: 'substep-2-2',
+          title: 'Sort components',
+          description: 'Organize components by type'
+        },
+        {
+          id: 'substep-2-3',
+          title: 'Check for damage',
+          description: 'Inspect parts for any damage'
+        }
+      ]
     },
     {
       id: 'step-3',
