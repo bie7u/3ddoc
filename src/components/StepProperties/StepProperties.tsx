@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '../../store';
-import type { InstructionStep } from '../../types';
+import type { InstructionStep, ShapeType } from '../../types';
 
 export const StepProperties = () => {
   const { project, selectedStepId, updateStep, deleteStep, addStep } = useAppStore();
@@ -11,6 +11,7 @@ export const StepProperties = () => {
     title: '',
     description: '',
     highlightColor: '#4299e1',
+    shapeType: 'cube',
   });
 
   useEffect(() => {
@@ -19,6 +20,7 @@ export const StepProperties = () => {
         title: selectedStep.title,
         description: selectedStep.description,
         highlightColor: selectedStep.highlightColor || '#4299e1',
+        shapeType: selectedStep.shapeType || 'cube',
       });
     }
   }, [selectedStep]);
@@ -50,6 +52,7 @@ export const StepProperties = () => {
       modelPath: 'box',
       cameraPosition: { x: 5, y: 5, z: 5, targetX: 0, targetY: 0, targetZ: 0 },
       highlightColor: '#4299e1',
+      shapeType: 'cube',
     };
     addStep(newStep);
   };
@@ -113,6 +116,22 @@ export const StepProperties = () => {
                   className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Shape Type
+              </label>
+              <select
+                value={formData.shapeType || 'cube'}
+                onChange={(e) => handleInputChange('shapeType', e.target.value as ShapeType)}
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="cube">Cube</option>
+                <option value="sphere">Sphere</option>
+                <option value="cylinder">Cylinder</option>
+                <option value="cone">Cone</option>
+              </select>
             </div>
 
             <div className="pt-4 space-y-2">

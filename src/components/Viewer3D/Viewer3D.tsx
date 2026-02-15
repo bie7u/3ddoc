@@ -2,7 +2,7 @@ import { useRef, useEffect, useMemo, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
-import type { InstructionStep, ConnectionStyle } from '../../types';
+import type { InstructionStep, ConnectionStyle, ShapeType } from '../../types';
 import type { ProjectData } from '../../types';
 import { calculateCreatorBasedLayout } from '../../utils/layoutCalculator';
 
@@ -11,8 +11,44 @@ interface ConnectionWithIndices {
   targetIndex: number;
   style: ConnectionStyle;
   description?: string;
-  showCube?: boolean;
+  shapeType?: ShapeType;
 }
+
+interface Shape3DProps {
+  shapeType?: ShapeType;
+  size?: number;
+  color: string;
+  emissive?: string;
+  emissiveIntensity?: number;
+}
+
+// Reusable 3D shape component
+const Shape3D = ({ shapeType = 'cube', size = 2, color, emissive = '#000000', emissiveIntensity = 0 }: Shape3DProps) => {
+  const renderGeometry = () => {
+    switch (shapeType) {
+      case 'sphere':
+        return <sphereGeometry args={[size / 2, 32, 32]} />;
+      case 'cylinder':
+        return <cylinderGeometry args={[size / 2, size / 2, size, 32]} />;
+      case 'cone':
+        return <coneGeometry args={[size / 2, size, 32]} />;
+      case 'cube':
+      default:
+        return <boxGeometry args={[size, size, size]} />;
+    }
+  };
+
+  return (
+    <mesh castShadow>
+      {renderGeometry()}
+      <meshStandardMaterial 
+        color={color}
+        emissive={emissive}
+        emissiveIntensity={emissiveIntensity}
+      />
+    </mesh>
+  );
+};
 
 interface StepCubeProps {
   step: InstructionStep;
@@ -20,7 +56,7 @@ interface StepCubeProps {
   isActive: boolean;
 }
 
-// Individual step cube component
+// Individual step shape component
 const StepCube = ({ step, position, isActive }: StepCubeProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
@@ -39,23 +75,41 @@ const StepCube = ({ step, position, isActive }: StepCubeProps) => {
   });
 
   const color = step.highlightColor || '#4299e1';
+  const shapeType = step.shapeType || 'cube';
+
+  // Get appropriate glow geometry based on shape type
+  const renderGlowGeometry = () => {
+    const glowSize = 2.3;
+    switch (shapeType) {
+      case 'sphere':
+        return <sphereGeometry args={[glowSize / 2, 32, 32]} />;
+      case 'cylinder':
+        return <cylinderGeometry args={[glowSize / 2, glowSize / 2, glowSize, 32]} />;
+      case 'cone':
+        return <coneGeometry args={[glowSize / 2, glowSize, 32]} />;
+      case 'cube':
+      default:
+        return <boxGeometry args={[glowSize, glowSize, glowSize]} />;
+    }
+  };
 
   return (
     <group position={position}>
-      {/* Main cube */}
-      <mesh ref={meshRef} castShadow>
-        <boxGeometry args={[2, 2, 2]} />
-        <meshStandardMaterial 
-          color={color} 
+      {/* Main shape */}
+      <group ref={meshRef}>
+        <Shape3D 
+          shapeType={shapeType}
+          size={2}
+          color={color}
           emissive={isActive ? color : '#000000'}
           emissiveIntensity={isActive ? 0.3 : 0}
         />
-      </mesh>
+      </group>
       
       {/* Glowing outline for active step */}
       {isActive && (
         <mesh ref={glowRef}>
-          <boxGeometry args={[2.3, 2.3, 2.3]} />
+          {renderGlowGeometry()}
           <meshBasicMaterial 
             color={color}
             transparent 
@@ -74,15 +128,15 @@ interface ConnectionTubeProps {
   isActive: boolean;
   style?: 'standard' | 'glass' | 'glow' | 'neon';
   description?: string;
-  showCube?: boolean;
+  shapeType?: ShapeType;
   onClick?: () => void;
 }
 
 // Connection tube between steps
-const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard', showCube, onClick }: ConnectionTubeProps) => {
+const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard', shapeType, onClick }: ConnectionTubeProps) => {
   const tubeRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
-  const cubeRef = useRef<THREE.Mesh>(null);
+  const shapeRef = useRef<THREE.Group>(null);
   
   // Memoize the path to avoid recreating on every render
   const path = useMemo(() => {
@@ -92,7 +146,7 @@ const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard', showCu
     ]);
   }, [startPos, endPos]);
   
-  // Calculate midpoint for cube placement
+  // Calculate midpoint for shape placement
   const midPoint = useMemo(() => {
     const mid = new THREE.Vector3(
       (startPos[0] + endPos[0]) / 2,
@@ -112,10 +166,10 @@ const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard', showCu
       }
     }
     
-    // Rotate cube if shown
-    if (cubeRef.current) {
-      cubeRef.current.rotation.y += 0.01;
-      cubeRef.current.rotation.x += 0.005;
+    // Rotate shape if shown
+    if (shapeRef.current) {
+      shapeRef.current.rotation.y += 0.01;
+      shapeRef.current.rotation.x += 0.005;
     }
   });
 
@@ -235,18 +289,17 @@ const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard', showCu
     <group onClick={onClick} onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}>
       {renderByStyle()}
       
-      {/* Optional cube above connection */}
-      {showCube && (
-        <mesh ref={cubeRef} position={[midPoint.x, midPoint.y, midPoint.z]}>
-          <boxGeometry args={[0.8, 0.8, 0.8]} />
-          <meshStandardMaterial 
+      {/* Optional shape above connection */}
+      {shapeType && (
+        <group ref={shapeRef} position={[midPoint.x, midPoint.y, midPoint.z]}>
+          <Shape3D 
+            shapeType={shapeType}
+            size={0.8}
             color="#fbbf24"
             emissive="#f59e0b"
             emissiveIntensity={0.5}
-            metalness={0.3}
-            roughness={0.4}
           />
-        </mesh>
+        </group>
       )}
     </group>
   );
@@ -293,7 +346,7 @@ const UnifiedModel = ({ project, currentStepId, nodePositions, onConnectionClick
           targetIndex, 
           style: conn.data?.style || 'standard' as ConnectionStyle,
           description: conn.data?.description,
-          showCube: conn.data?.showCube
+          shapeType: conn.data?.shapeType
         } as ConnectionWithIndices;
       })
       .filter((c): c is ConnectionWithIndices => c !== null);
@@ -327,7 +380,7 @@ const UnifiedModel = ({ project, currentStepId, nodePositions, onConnectionClick
           isActive={isConnectionActive(conn.sourceIndex, conn.targetIndex)}
           style={conn.style}
           description={conn.description}
-          showCube={conn.showCube}
+          shapeType={conn.shapeType}
           onClick={conn.description && onConnectionClick ? () => onConnectionClick(conn.description as string) : undefined}
         />
       ))}

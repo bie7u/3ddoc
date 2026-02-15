@@ -17,10 +17,12 @@ export interface Annotation {
 
 export type ConnectionStyle = 'standard' | 'glass' | 'glow' | 'neon';
 
+export type ShapeType = 'cube' | 'sphere' | 'cylinder' | 'cone';
+
 export interface ConnectionData {
   style?: ConnectionStyle;
   description?: string;
-  showCube?: boolean;
+  shapeType?: ShapeType;
 }
 
 export interface InstructionStep {
@@ -31,6 +33,7 @@ export interface InstructionStep {
   cameraPosition: CameraPosition;
   annotations?: Annotation[];
   highlightColor?: string;
+  shapeType?: ShapeType;
 }
 
 export interface ProjectData {
