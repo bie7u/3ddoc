@@ -205,8 +205,8 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
           <button
             onClick={() => setShowEditDialog(true)}
             className="px-2 py-1 text-xs rounded shadow-md hover:shadow-lg transition bg-blue-500 hover:bg-blue-600 text-white"
-            title="Edit description"
-            aria-label="Edit description"
+            title={currentDescription ? "Edit connection description" : "Add connection description"}
+            aria-label={currentDescription ? "Edit connection description" : "Add connection description"}
           >
             {currentDescription ? '📝' : '➕'}
           </button>

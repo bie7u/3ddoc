@@ -220,8 +220,19 @@ const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard', showCu
     }
   };
 
+  const handlePointerOver = (e: React.PointerEvent<THREE.Group>) => {
+    e.stopPropagation();
+    if (onClick) {
+      document.body.style.cursor = 'pointer';
+    }
+  };
+
+  const handlePointerOut = () => {
+    document.body.style.cursor = 'default';
+  };
+
   return (
-    <group onClick={onClick} onPointerOver={(e) => { e.stopPropagation(); if (onClick) document.body.style.cursor = 'pointer'; }} onPointerOut={() => { document.body.style.cursor = 'default'; }}>
+    <group onClick={onClick} onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}>
       {renderByStyle()}
       
       {/* Optional cube above connection */}
@@ -317,7 +328,7 @@ const UnifiedModel = ({ project, currentStepId, nodePositions, onConnectionClick
           style={conn.style}
           description={conn.description}
           showCube={conn.showCube}
-          onClick={conn.description && onConnectionClick ? () => onConnectionClick(conn.description!) : undefined}
+          onClick={conn.description && onConnectionClick ? () => onConnectionClick(conn.description as string) : undefined}
         />
       ))}
     </group>
