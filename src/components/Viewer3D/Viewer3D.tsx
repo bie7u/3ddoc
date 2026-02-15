@@ -2,9 +2,15 @@ import { useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
-import type { InstructionStep } from '../../types';
+import type { InstructionStep, ConnectionStyle } from '../../types';
 import type { ProjectData } from '../../types';
 import { calculateHierarchicalLayout } from '../../utils/layoutCalculator';
+
+interface ConnectionWithIndices {
+  sourceIndex: number;
+  targetIndex: number;
+  style: ConnectionStyle;
+}
 
 interface StepCubeProps {
   step: InstructionStep;
@@ -227,10 +233,10 @@ const UnifiedModel = ({ project, currentStepId }: UnifiedModelProps) => {
         const sourceIndex = stepIdToIndex.get(conn.source);
         const targetIndex = stepIdToIndex.get(conn.target);
         return sourceIndex !== undefined && targetIndex !== undefined
-          ? { sourceIndex, targetIndex, style: conn.data?.style || 'standard' }
+          ? { sourceIndex, targetIndex, style: conn.data?.style || 'standard' as ConnectionStyle }
           : null;
       })
-      .filter((c): c is { sourceIndex: number; targetIndex: number; style: 'standard' | 'glass' | 'glow' | 'neon' } => c !== null);
+      .filter((c): c is ConnectionWithIndices => c !== null);
   }, [project.connections, steps]);
 
   // Check if connection is active (involves current step)

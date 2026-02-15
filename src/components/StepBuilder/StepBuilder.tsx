@@ -178,12 +178,17 @@ export const StepBuilder = () => {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      const newEdge = {
-        ...connection,
-        id: `e${Date.now()}`,
+      if (!connection.source || !connection.target) return;
+      
+      const newEdge: Edge<ConnectionData> = {
+        id: `e${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        source: connection.source,
+        target: connection.target,
+        sourceHandle: connection.sourceHandle,
+        targetHandle: connection.targetHandle,
         data: { style: 'standard' as ConnectionStyle },
       };
-      const newEdges = [...edges, newEdge] as Edge<ConnectionData>[];
+      const newEdges = [...edges, newEdge];
       setEdges(newEdges);
       updateConnections(newEdges);
     },
