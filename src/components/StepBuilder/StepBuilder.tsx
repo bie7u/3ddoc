@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
   type Node,
   type Edge,
@@ -15,7 +15,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useAppStore } from '../../store';
-import type { InstructionStep } from '../../types';
+import type { InstructionStep, EdgeStyle } from '../../types';
 import { DefaultEdge, GlowEdge, GlassEdge, DashedEdge } from './CustomEdges';
 
 // Custom node component
@@ -55,6 +55,8 @@ const edgeTypes = {
 
 export const StepBuilder = () => {
   const { project, updateConnections, setSelectedStepId, nodePositions, updateNodePosition } = useAppStore();
+  const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
+  const [edgeMenuPosition, setEdgeMenuPosition] = useState<{ x: number; y: number } | null>(null);
   
   // Convert project steps to React Flow nodes
   const initialNodes: Node[] = useMemo(() => {
@@ -130,7 +132,38 @@ export const StepBuilder = () => {
 
   const onPaneClick = useCallback(() => {
     setSelectedStepId(null);
+    setSelectedEdge(null);
+    setEdgeMenuPosition(null);
   }, [setSelectedStepId]);
+
+  const onEdgeClick = useCallback(
+    (_event: React.MouseEvent, edge: Edge) => {
+      setSelectedEdge(edge);
+      setSelectedStepId(null);
+      // Position the menu near the click
+      const rect = (_event.currentTarget as HTMLElement).getBoundingClientRect();
+      setEdgeMenuPosition({ x: _event.clientX - rect.left, y: _event.clientY - rect.top });
+    },
+    [setSelectedStepId]
+  );
+
+  const changeEdgeStyle = useCallback(
+    (style: EdgeStyle) => {
+      if (!selectedEdge) return;
+      
+      const updatedEdges = edges.map((edge) =>
+        edge.id === selectedEdge.id
+          ? { ...edge, data: { ...edge.data, style }, type: style }
+          : edge
+      );
+      
+      setEdges(updatedEdges);
+      updateConnections(updatedEdges);
+      setSelectedEdge(null);
+      setEdgeMenuPosition(null);
+    },
+    [selectedEdge, edges, setEdges, updateConnections]
+  );
 
   // Save node positions when they change
   const onNodeDragStop = useCallback(
@@ -141,7 +174,7 @@ export const StepBuilder = () => {
   );
 
   return (
-    <div className="w-full h-full bg-gray-50">
+    <div className="w-full h-full bg-gray-50 relative">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -150,6 +183,7 @@ export const StepBuilder = () => {
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
+        onEdgeClick={onEdgeClick}
         onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -159,6 +193,49 @@ export const StepBuilder = () => {
         <Background />
         <Controls />
       </ReactFlow>
+      
+      {/* Edge Style Menu */}
+      {selectedEdge && edgeMenuPosition && (
+        <div
+          className="absolute bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50"
+          style={{
+            left: `${edgeMenuPosition.x}px`,
+            top: `${edgeMenuPosition.y}px`,
+          }}
+        >
+          <div className="text-xs font-semibold mb-2 text-gray-700">Connection Style</div>
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={() => changeEdgeStyle('default')}
+              className="px-3 py-1.5 text-xs text-left hover:bg-gray-100 rounded flex items-center gap-2"
+            >
+              <div className="w-8 h-0.5 bg-gray-400"></div>
+              Default
+            </button>
+            <button
+              onClick={() => changeEdgeStyle('glow')}
+              className="px-3 py-1.5 text-xs text-left hover:bg-gray-100 rounded flex items-center gap-2"
+            >
+              <div className="w-8 h-0.5 bg-blue-400 shadow-lg shadow-blue-300"></div>
+              Glow
+            </button>
+            <button
+              onClick={() => changeEdgeStyle('glass')}
+              className="px-3 py-1.5 text-xs text-left hover:bg-gray-100 rounded flex items-center gap-2"
+            >
+              <div className="w-8 h-1 bg-gradient-to-b from-blue-200 via-blue-300 to-blue-200 rounded"></div>
+              Glass Tube
+            </button>
+            <button
+              onClick={() => changeEdgeStyle('dashed')}
+              className="px-3 py-1.5 text-xs text-left hover:bg-gray-100 rounded flex items-center gap-2"
+            >
+              <div className="w-8 h-0.5 border-b-2 border-dashed border-purple-400"></div>
+              Dashed
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
