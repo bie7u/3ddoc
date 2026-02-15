@@ -13,13 +13,17 @@ interface AppStore {
   isPreviewMode: boolean;
   currentPreviewStepIndex: number;
   
+  // Node positions for React Flow
+  nodePositions: Record<string, { x: number; y: number }>;
+  
   // Actions
   setProject: (project: ProjectData) => void;
-  addStep: (step: InstructionStep) => void;
+  addStep: (step: InstructionStep, position?: { x: number; y: number }) => void;
   updateStep: (id: string, updates: Partial<InstructionStep>) => void;
   deleteStep: (id: string) => void;
   setSelectedStepId: (id: string | null) => void;
   updateConnections: (edges: Edge[]) => void;
+  updateNodePosition: (id: string, position: { x: number; y: number }) => void;
   setPreviewMode: (isPreview: boolean) => void;
   setCurrentPreviewStepIndex: (index: number) => void;
   saveToLocalStorage: () => void;
@@ -33,14 +37,15 @@ export const useAppStore = create<AppStore>((set, get) => ({
   selectedStepId: null,
   isPreviewMode: false,
   currentPreviewStepIndex: 0,
+  nodePositions: {},
 
   setProject: (project) => {
     set({ project });
     get().saveToLocalStorage();
   },
 
-  addStep: (step) => {
-    const { project } = get();
+  addStep: (step, position) => {
+    const { project, nodePositions } = get();
     if (!project) return;
     
     const updatedProject = {
@@ -48,7 +53,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
       steps: [...project.steps, step],
     };
     
-    set({ project: updatedProject });
+    // Store the position if provided
+    const updatedPositions = position 
+      ? { ...nodePositions, [step.id]: position }
+      : nodePositions;
+    
+    set({ project: updatedProject, nodePositions: updatedPositions });
     get().saveToLocalStorage();
   },
 
@@ -68,7 +78,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   deleteStep: (id) => {
-    const { project } = get();
+    const { project, nodePositions } = get();
     if (!project) return;
     
     const updatedProject = {
@@ -79,8 +89,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
       ),
     };
     
+    // Remove position data for deleted node
+    const updatedPositions = { ...nodePositions };
+    delete updatedPositions[id];
+    
     set({ 
       project: updatedProject,
+      nodePositions: updatedPositions,
       selectedStepId: get().selectedStepId === id ? null : get().selectedStepId
     });
     get().saveToLocalStorage();
@@ -101,6 +116,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
     get().saveToLocalStorage();
   },
 
+  updateNodePosition: (id, position) => {
+    const { nodePositions } = get();
+    set({ 
+      nodePositions: { ...nodePositions, [id]: position }
+    });
+  },
+
   setPreviewMode: (isPreview) => {
     set({ isPreviewMode: isPreview });
     if (isPreview) {
@@ -111,9 +133,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setCurrentPreviewStepIndex: (index) => set({ currentPreviewStepIndex: index }),
 
   saveToLocalStorage: () => {
-    const { project } = get();
+    const { project, nodePositions } = get();
     if (project) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+      const dataToSave = { project, nodePositions };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
     }
   },
 
@@ -121,8 +144,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        const project = JSON.parse(stored);
-        set({ project });
+        const data = JSON.parse(stored);
+        // Handle both old and new format
+        if (data.project) {
+          set({ project: data.project, nodePositions: data.nodePositions || {} });
+        } else {
+          // Old format - just the project
+          set({ project: data, nodePositions: {} });
+        }
       } catch (error) {
         console.error('Failed to load project from localStorage', error);
       }
