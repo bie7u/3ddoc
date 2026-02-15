@@ -9,6 +9,8 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   type NodeProps,
+  Handle,
+  Position,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useAppStore } from '../../store';
@@ -22,12 +24,14 @@ const StepNode = ({ data, selected }: NodeProps<InstructionStep>) => {
         selected ? 'border-blue-500' : 'border-gray-300'
       }`}
     >
+      <Handle type="target" position={Position.Top} />
       <div className="font-bold text-sm mb-1">{data.title}</div>
       <div className="text-xs text-gray-600 line-clamp-2">{data.description}</div>
       <div
         className="mt-2 h-2 rounded"
         style={{ backgroundColor: data.highlightColor || '#4299e1' }}
       />
+      <Handle type="source" position={Position.Bottom} />
     </div>
   );
 };
