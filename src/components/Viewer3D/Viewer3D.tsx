@@ -64,11 +64,13 @@ interface ConnectionTubeProps {
   startPos: [number, number, number];
   endPos: [number, number, number];
   isActive: boolean;
+  style?: 'standard' | 'glass' | 'glow' | 'neon';
 }
 
 // Connection tube between steps
-const ConnectionTube = ({ startPos, endPos, isActive }: ConnectionTubeProps) => {
+const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard' }: ConnectionTubeProps) => {
   const tubeRef = useRef<THREE.Mesh>(null);
+  const glowRef = useRef<THREE.Mesh>(null);
   
   // Memoize the path to avoid recreating on every render
   const path = useMemo(() => {
@@ -78,18 +80,119 @@ const ConnectionTube = ({ startPos, endPos, isActive }: ConnectionTubeProps) => 
     ]);
   }, [startPos, endPos]);
 
-  return (
-    <mesh ref={tubeRef}>
-      <tubeGeometry args={[path, 20, 0.15, 8, false]} />
-      <meshStandardMaterial 
-        color={isActive ? '#60a5fa' : '#4b5563'}
-        emissive={isActive ? '#3b82f6' : '#000000'}
-        emissiveIntensity={isActive ? 0.5 : 0}
-        metalness={0.5}
-        roughness={0.3}
-      />
-    </mesh>
-  );
+  // Animate glow effect for glow and neon styles
+  useFrame((state) => {
+    if (glowRef.current && (style === 'glow' || style === 'neon')) {
+      const pulse = Math.sin(state.clock.elapsedTime * 2) * 0.3 + 0.7;
+      const material = glowRef.current.material as THREE.MeshBasicMaterial;
+      if (material.opacity !== undefined) {
+        material.opacity = pulse * (isActive ? 0.6 : 0.3);
+      }
+    }
+  });
+
+  // Style-specific rendering
+  const renderByStyle = () => {
+    switch (style) {
+      case 'glass':
+        return (
+          <>
+            <mesh ref={tubeRef}>
+              <tubeGeometry args={[path, 20, 0.15, 8, false]} />
+              <meshPhysicalMaterial 
+                color={isActive ? '#60a5fa' : '#93c5fd'}
+                transparent
+                opacity={0.4}
+                metalness={0.1}
+                roughness={0.1}
+                transmission={0.9}
+                thickness={0.5}
+              />
+            </mesh>
+            {/* Outer glow for glass */}
+            <mesh>
+              <tubeGeometry args={[path, 20, 0.18, 8, false]} />
+              <meshBasicMaterial 
+                color="#60a5fa"
+                transparent 
+                opacity={isActive ? 0.2 : 0.1}
+              />
+            </mesh>
+          </>
+        );
+      
+      case 'glow':
+        return (
+          <>
+            <mesh ref={tubeRef}>
+              <tubeGeometry args={[path, 20, 0.12, 8, false]} />
+              <meshStandardMaterial 
+                color={isActive ? '#fbbf24' : '#fcd34d'}
+                emissive="#fbbf24"
+                emissiveIntensity={isActive ? 1.5 : 0.8}
+              />
+            </mesh>
+            {/* Outer glow effect */}
+            <mesh ref={glowRef}>
+              <tubeGeometry args={[path, 20, 0.25, 8, false]} />
+              <meshBasicMaterial 
+                color="#fbbf24"
+                transparent 
+                opacity={isActive ? 0.4 : 0.2}
+              />
+            </mesh>
+          </>
+        );
+      
+      case 'neon':
+        return (
+          <>
+            <mesh ref={tubeRef}>
+              <tubeGeometry args={[path, 20, 0.1, 8, false]} />
+              <meshStandardMaterial 
+                color={isActive ? '#ec4899' : '#f472b6'}
+                emissive={isActive ? '#ec4899' : '#f472b6'}
+                emissiveIntensity={2}
+              />
+            </mesh>
+            {/* Neon glow layers */}
+            <mesh ref={glowRef}>
+              <tubeGeometry args={[path, 20, 0.2, 8, false]} />
+              <meshBasicMaterial 
+                color="#ec4899"
+                transparent 
+                opacity={0.5}
+              />
+            </mesh>
+            <mesh>
+              <tubeGeometry args={[path, 20, 0.3, 8, false]} />
+              <meshBasicMaterial 
+                color="#ec4899"
+                transparent 
+                opacity={isActive ? 0.2 : 0.1}
+              />
+            </mesh>
+          </>
+        );
+      
+      case 'standard':
+      default:
+        return (
+          <mesh ref={tubeRef}>
+            <tubeGeometry args={[path, 20, 0.15, 8, false]} />
+            <meshStandardMaterial 
+              color={isActive ? '#60a5fa' : '#4b5563'}
+              emissive={isActive ? '#3b82f6' : '#000000'}
+              emissiveIntensity={isActive ? 0.5 : 0}
+              metalness={0.5}
+              roughness={0.3}
+            />
+          </mesh>
+        );
+    }
+  };
+
+  return <group>{renderByStyle()}</group>;
 };
 
 interface UnifiedModelProps {
@@ -124,10 +227,10 @@ const UnifiedModel = ({ project, currentStepId }: UnifiedModelProps) => {
         const sourceIndex = stepIdToIndex.get(conn.source);
         const targetIndex = stepIdToIndex.get(conn.target);
         return sourceIndex !== undefined && targetIndex !== undefined
-          ? { sourceIndex, targetIndex }
+          ? { sourceIndex, targetIndex, style: conn.data?.style || 'standard' }
           : null;
       })
-      .filter((c): c is { sourceIndex: number; targetIndex: number } => c !== null);
+      .filter((c): c is { sourceIndex: number; targetIndex: number; style: 'standard' | 'glass' | 'glow' | 'neon' } => c !== null);
   }, [project.connections, steps]);
 
   // Check if connection is active (involves current step)
@@ -156,6 +259,7 @@ const UnifiedModel = ({ project, currentStepId }: UnifiedModelProps) => {
           startPos={positions[conn.sourceIndex]}
           endPos={positions[conn.targetIndex]}
           isActive={isConnectionActive(conn.sourceIndex, conn.targetIndex)}
+          style={conn.style}
         />
       ))}
     </group>
