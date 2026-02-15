@@ -13,7 +13,8 @@ export const MainLayout = () => {
     isPreviewMode, 
     setPreviewMode, 
     setProject,
-    loadFromLocalStorage 
+    loadFromLocalStorage,
+    nodePositions
   } = useAppStore();
 
   // Load project on mount
@@ -92,7 +93,7 @@ export const MainLayout = () => {
         {/* Center Panel - 3D Viewer (reduced) */}
         <div className="w-1/3 relative">
           <div className="h-full">
-            <Viewer3D project={project} currentStepId={selectedStepId} />
+            <Viewer3D project={project} currentStepId={selectedStepId} nodePositions={nodePositions} />
           </div>
           {!selectedStepId && project && project.steps.length > 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

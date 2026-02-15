@@ -4,7 +4,7 @@ import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import type { InstructionStep, ConnectionStyle } from '../../types';
 import type { ProjectData } from '../../types';
-import { calculateHierarchicalLayout } from '../../utils/layoutCalculator';
+import { calculateCreatorBasedLayout } from '../../utils/layoutCalculator';
 
 interface ConnectionWithIndices {
   sourceIndex: number;
@@ -204,16 +204,17 @@ const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard' }: Conn
 interface UnifiedModelProps {
   project: ProjectData;
   currentStepId: string | null;
+  nodePositions: Record<string, { x: number; y: number }>;
 }
 
 // Unified model containing all steps
-const UnifiedModel = ({ project, currentStepId }: UnifiedModelProps) => {
+const UnifiedModel = ({ project, currentStepId, nodePositions }: UnifiedModelProps) => {
   const steps = project.steps;
   
-  // Calculate hierarchical layout positions
+  // Calculate layout based on creator positions
   const layout = useMemo(() => {
-    return calculateHierarchicalLayout(steps, project.connections);
-  }, [steps, project.connections]);
+    return calculateCreatorBasedLayout(steps, nodePositions);
+  }, [steps, nodePositions]);
   
   // Convert layout to position array, preserving step order
   const positions: [number, number, number][] = useMemo(() => {
@@ -275,31 +276,32 @@ const UnifiedModel = ({ project, currentStepId }: UnifiedModelProps) => {
 interface CameraControllerProps {
   project: ProjectData;
   currentStepId: string | null;
+  nodePositions: Record<string, { x: number; y: number }>;
 }
 
 // Component to smoothly transition camera to focus on current step
-const CameraController = ({ project, currentStepId }: CameraControllerProps) => {
+const CameraController = ({ project, currentStepId, nodePositions }: CameraControllerProps) => {
   const { camera } = useThree();
   const targetPos = useRef(new THREE.Vector3());
   const targetLookAt = useRef(new THREE.Vector3());
 
   // Memoize layout calculation
   const layout = useMemo(() => {
-    return calculateHierarchicalLayout(project.steps, project.connections);
-  }, [project.steps, project.connections]);
+    return calculateCreatorBasedLayout(project.steps, nodePositions);
+  }, [project.steps, nodePositions]);
 
   useEffect(() => {
     if (!currentStepId || !project) {
       // Default camera position to see all cubes
-      targetPos.current.set(0, 8, 12);
-      targetLookAt.current.set(0, 0, -5);
+      targetPos.current.set(0, 10, 15);
+      targetLookAt.current.set(0, 0, 0);
       return;
     }
 
     const currentStep = project.steps.find(s => s.id === currentStepId);
     if (!currentStep) {
-      targetPos.current.set(0, 8, 12);
-      targetLookAt.current.set(0, 0, -5);
+      targetPos.current.set(0, 10, 15);
+      targetLookAt.current.set(0, 0, 0);
       return;
     }
 
@@ -307,16 +309,16 @@ const CameraController = ({ project, currentStepId }: CameraControllerProps) => 
     const stepPos = layout.get(currentStepId);
     
     if (!stepPos) {
-      targetPos.current.set(0, 8, 12);
-      targetLookAt.current.set(0, 0, -5);
+      targetPos.current.set(0, 10, 15);
+      targetLookAt.current.set(0, 0, 0);
       return;
     }
     
     // Position camera to focus on current cube but keep context visible
-    const cameraDistance = 8;
-    const cameraHeight = 5;
+    const cameraDistance = 10;
+    const cameraHeight = 6;
     
-    targetPos.current.set(stepPos.x + cameraDistance * 0.5, cameraHeight, stepPos.z + cameraDistance);
+    targetPos.current.set(stepPos.x, cameraHeight, stepPos.z + cameraDistance);
     targetLookAt.current.set(stepPos.x, stepPos.y, stepPos.z);
   }, [currentStepId, project, layout]);
 
@@ -339,19 +341,21 @@ const CameraController = ({ project, currentStepId }: CameraControllerProps) => 
 interface Viewer3DProps {
   project: ProjectData | null;
   currentStepId: string | null;
+  nodePositions?: Record<string, { x: number; y: number }>;
 }
 
-export const Viewer3D = ({ project, currentStepId }: Viewer3DProps) => {
+export const Viewer3D = ({ project, currentStepId, nodePositions = {} }: Viewer3DProps) => {
   const currentStep = project?.steps.find(s => s.id === currentStepId);
   
   return (
     <div className="w-full h-full bg-gray-900">
       <Canvas shadows>
-        <PerspectiveCamera makeDefault position={[0, 8, 12]} />
+        <PerspectiveCamera makeDefault position={[0, 10, 15]} />
         {project && (
           <CameraController 
             project={project}
             currentStepId={currentStepId}
+            nodePositions={nodePositions}
           />
         )}
         
@@ -365,6 +369,7 @@ export const Viewer3D = ({ project, currentStepId }: Viewer3DProps) => {
           <UnifiedModel 
             project={project}
             currentStepId={currentStepId}
+            nodePositions={nodePositions}
           />
         )}
         
