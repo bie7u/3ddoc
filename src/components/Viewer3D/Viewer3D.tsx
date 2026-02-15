@@ -173,6 +173,11 @@ const CameraController = ({ project, currentStepId }: CameraControllerProps) => 
   const targetPos = useRef(new THREE.Vector3());
   const targetLookAt = useRef(new THREE.Vector3());
 
+  // Memoize layout calculation
+  const layout = useMemo(() => {
+    return calculateHierarchicalLayout(project.steps, project.connections);
+  }, [project.steps, project.connections]);
+
   useEffect(() => {
     if (!currentStepId || !project) {
       // Default camera position to see all cubes
@@ -188,8 +193,7 @@ const CameraController = ({ project, currentStepId }: CameraControllerProps) => 
       return;
     }
 
-    // Calculate layout and get position of current step
-    const layout = calculateHierarchicalLayout(project.steps, project.connections);
+    // Get position of current step from memoized layout
     const stepPos = layout.get(currentStepId);
     
     if (!stepPos) {
@@ -204,7 +208,7 @@ const CameraController = ({ project, currentStepId }: CameraControllerProps) => 
     
     targetPos.current.set(stepPos.x + cameraDistance * 0.5, cameraHeight, stepPos.z + cameraDistance);
     targetLookAt.current.set(stepPos.x, stepPos.y, stepPos.z);
-  }, [currentStepId, project]);
+  }, [currentStepId, project, layout]);
 
   useFrame(() => {
     // Smooth camera movement

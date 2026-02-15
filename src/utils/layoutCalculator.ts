@@ -48,25 +48,25 @@ export const calculateHierarchicalLayout = (
   
   roots.forEach(root => {
     queue.push({ id: root.id, depth: 0 });
+    depths.set(root.id, 0);
     visited.add(root.id);
   });
 
-  while (queue.length > 0) {
-    const { id, depth } = queue.shift()!;
-    depths.set(id, depth);
+  let queueIndex = 0;
+  while (queueIndex < queue.length) {
+    const { id, depth } = queue[queueIndex++];
 
     const children = outgoing.get(id) || [];
     children.forEach(childId => {
-      if (!visited.has(childId)) {
-        visited.add(childId);
-        queue.push({ id: childId, depth: depth + 1 });
-      } else {
-        // Update depth if we found a longer path
-        const currentDepth = depths.get(childId) || 0;
-        if (depth + 1 > currentDepth) {
-          depths.set(childId, depth + 1);
-          // Re-queue to update descendants
-          queue.push({ id: childId, depth: depth + 1 });
+      const currentDepth = depths.get(childId);
+      const newDepth = depth + 1;
+      
+      if (currentDepth === undefined || newDepth > currentDepth) {
+        depths.set(childId, newDepth);
+        
+        if (!visited.has(childId)) {
+          visited.add(childId);
+          queue.push({ id: childId, depth: newDepth });
         }
       }
     });
