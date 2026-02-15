@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useMemo, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
@@ -10,6 +10,8 @@ interface ConnectionWithIndices {
   sourceIndex: number;
   targetIndex: number;
   style: ConnectionStyle;
+  description?: string;
+  showCube?: boolean;
 }
 
 interface StepCubeProps {
@@ -71,12 +73,16 @@ interface ConnectionTubeProps {
   endPos: [number, number, number];
   isActive: boolean;
   style?: 'standard' | 'glass' | 'glow' | 'neon';
+  description?: string;
+  showCube?: boolean;
+  onClick?: () => void;
 }
 
 // Connection tube between steps
-const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard' }: ConnectionTubeProps) => {
+const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard', showCube, onClick }: ConnectionTubeProps) => {
   const tubeRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
+  const cubeRef = useRef<THREE.Mesh>(null);
   
   // Memoize the path to avoid recreating on every render
   const path = useMemo(() => {
@@ -84,6 +90,16 @@ const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard' }: Conn
       new THREE.Vector3(...startPos),
       new THREE.Vector3(...endPos),
     ]);
+  }, [startPos, endPos]);
+  
+  // Calculate midpoint for cube placement
+  const midPoint = useMemo(() => {
+    const mid = new THREE.Vector3(
+      (startPos[0] + endPos[0]) / 2,
+      (startPos[1] + endPos[1]) / 2 + 2, // Elevated above the connection
+      (startPos[2] + endPos[2]) / 2
+    );
+    return mid;
   }, [startPos, endPos]);
 
   // Animate glow effect for glow and neon styles
@@ -94,6 +110,12 @@ const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard' }: Conn
       if (material.opacity !== undefined) {
         material.opacity = pulse * (isActive ? 0.6 : 0.3);
       }
+    }
+    
+    // Rotate cube if shown
+    if (cubeRef.current) {
+      cubeRef.current.rotation.y += 0.01;
+      cubeRef.current.rotation.x += 0.005;
     }
   });
 
@@ -198,17 +220,47 @@ const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard' }: Conn
     }
   };
 
-  return <group>{renderByStyle()}</group>;
+  const handlePointerOver = (e: React.PointerEvent<THREE.Group>) => {
+    e.stopPropagation();
+    if (onClick) {
+      document.body.style.cursor = 'pointer';
+    }
+  };
+
+  const handlePointerOut = () => {
+    document.body.style.cursor = 'default';
+  };
+
+  return (
+    <group onClick={onClick} onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}>
+      {renderByStyle()}
+      
+      {/* Optional cube above connection */}
+      {showCube && (
+        <mesh ref={cubeRef} position={[midPoint.x, midPoint.y, midPoint.z]}>
+          <boxGeometry args={[0.8, 0.8, 0.8]} />
+          <meshStandardMaterial 
+            color="#fbbf24"
+            emissive="#f59e0b"
+            emissiveIntensity={0.5}
+            metalness={0.3}
+            roughness={0.4}
+          />
+        </mesh>
+      )}
+    </group>
+  );
 };
 
 interface UnifiedModelProps {
   project: ProjectData;
   currentStepId: string | null;
   nodePositions: Record<string, { x: number; y: number }>;
+  onConnectionClick?: (description: string) => void;
 }
 
 // Unified model containing all steps
-const UnifiedModel = ({ project, currentStepId, nodePositions }: UnifiedModelProps) => {
+const UnifiedModel = ({ project, currentStepId, nodePositions, onConnectionClick }: UnifiedModelProps) => {
   const steps = project.steps;
   
   // Calculate layout based on creator positions
@@ -233,9 +285,16 @@ const UnifiedModel = ({ project, currentStepId, nodePositions }: UnifiedModelPro
       .map(conn => {
         const sourceIndex = stepIdToIndex.get(conn.source);
         const targetIndex = stepIdToIndex.get(conn.target);
-        return sourceIndex !== undefined && targetIndex !== undefined
-          ? { sourceIndex, targetIndex, style: conn.data?.style || 'standard' as ConnectionStyle }
-          : null;
+        if (sourceIndex === undefined || targetIndex === undefined) {
+          return null;
+        }
+        return { 
+          sourceIndex, 
+          targetIndex, 
+          style: conn.data?.style || 'standard' as ConnectionStyle,
+          description: conn.data?.description,
+          showCube: conn.data?.showCube
+        } as ConnectionWithIndices;
       })
       .filter((c): c is ConnectionWithIndices => c !== null);
   }, [project.connections, steps]);
@@ -267,6 +326,9 @@ const UnifiedModel = ({ project, currentStepId, nodePositions }: UnifiedModelPro
           endPos={positions[conn.targetIndex]}
           isActive={isConnectionActive(conn.sourceIndex, conn.targetIndex)}
           style={conn.style}
+          description={conn.description}
+          showCube={conn.showCube}
+          onClick={conn.description && onConnectionClick ? () => onConnectionClick(conn.description as string) : undefined}
         />
       ))}
     </group>
@@ -346,6 +408,11 @@ interface Viewer3DProps {
 
 export const Viewer3D = ({ project, currentStepId, nodePositions = {} }: Viewer3DProps) => {
   const currentStep = project?.steps.find(s => s.id === currentStepId);
+  const [selectedConnectionDesc, setSelectedConnectionDesc] = useState<string | null>(null);
+  
+  const handleConnectionClick = (description: string) => {
+    setSelectedConnectionDesc(description);
+  };
   
   return (
     <div className="w-full h-full bg-gray-900">
@@ -370,6 +437,7 @@ export const Viewer3D = ({ project, currentStepId, nodePositions = {} }: Viewer3
             project={project}
             currentStepId={currentStepId}
             nodePositions={nodePositions}
+            onConnectionClick={handleConnectionClick}
           />
         )}
         
@@ -385,6 +453,24 @@ export const Viewer3D = ({ project, currentStepId, nodePositions = {} }: Viewer3
         <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white p-4 rounded-lg max-w-md">
           <h3 className="text-lg font-bold mb-2">{currentStep.title}</h3>
           <p className="text-sm">{currentStep.description}</p>
+        </div>
+      )}
+      
+      {/* Connection description overlay */}
+      {selectedConnectionDesc && (
+        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-blue-600 bg-opacity-90 text-white p-4 rounded-lg max-w-md shadow-xl">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h4 className="text-sm font-bold mb-1">Connection Info</h4>
+              <p className="text-sm">{selectedConnectionDesc}</p>
+            </div>
+            <button
+              onClick={() => setSelectedConnectionDesc(null)}
+              className="text-white hover:text-gray-200 text-xl leading-none"
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
     </div>

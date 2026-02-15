@@ -44,13 +44,93 @@ const StepNode = ({ data, selected }: NodeProps<InstructionStep>) => {
   );
 };
 
+// Connection edit dialog component
+interface ConnectionEditDialogProps {
+  description: string;
+  showCube: boolean;
+  onSave: (description: string, showCube: boolean) => void;
+  onCancel: () => void;
+  position: { x: number; y: number };
+}
+
+const ConnectionEditDialog = ({ 
+  description, 
+  showCube, 
+  onSave, 
+  onCancel,
+  position 
+}: ConnectionEditDialogProps) => {
+  const [tempDescription, setTempDescription] = useState(description);
+  const [tempShowCube, setTempShowCube] = useState(showCube);
+  
+  const handleSave = () => {
+    onSave(tempDescription, tempShowCube);
+  };
+  
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${position.x}px,${position.y}px)`,
+        pointerEvents: 'all',
+      }}
+      className="nodrag nopan bg-white rounded-lg shadow-xl border border-gray-300 p-4 min-w-[300px] z-20"
+    >
+      <h3 className="text-sm font-bold mb-3">Edit Connection</h3>
+      
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-700 mb-1">
+          Description
+        </label>
+        <textarea
+          value={tempDescription}
+          onChange={(e) => setTempDescription(e.target.value)}
+          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          rows={3}
+          placeholder="Enter connection description..."
+        />
+      </div>
+      
+      <div className="mb-3">
+        <label className="flex items-center text-xs">
+          <input
+            type="checkbox"
+            checked={tempShowCube}
+            onChange={(e) => setTempShowCube(e.target.checked)}
+            className="mr-2"
+          />
+          Show cube above connection
+        </label>
+      </div>
+      
+      <div className="flex gap-2 justify-end">
+        <button
+          onClick={onCancel}
+          className="px-3 py-1 text-xs bg-gray-300 hover:bg-gray-400 rounded transition"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSave}
+          className="px-3 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded transition"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Custom edge component with style selector
 const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<ConnectionData>) => {
   const { updateConnections, project } = useAppStore();
   const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [edgePath, labelX, labelY] = getBezierPath({ sourceX, sourceY, targetX, targetY });
   
   const currentStyle = data?.style || 'standard';
+  const currentDescription = data?.description || '';
+  const currentShowCube = data?.showCube || false;
   
   const styles: { value: ConnectionStyle; label: string; color: string }[] = [
     { value: 'standard', label: 'Standard', color: '#4b5563' },
@@ -70,6 +150,19 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
     
     updateConnections(updatedConnections);
     setShowStyleMenu(false);
+  };
+  
+  const handleDescriptionChange = (description: string, showCube: boolean) => {
+    if (!project) return;
+    
+    const updatedConnections = project.connections.map(conn => 
+      conn.id === id 
+        ? { ...conn, data: { ...conn.data, description, showCube } }
+        : conn
+    );
+    
+    updateConnections(updatedConnections);
+    setShowEditDialog(false);
   };
   
   const handleDelete = () => {
@@ -110,6 +203,15 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
           </button>
           
           <button
+            onClick={() => setShowEditDialog(true)}
+            className="px-2 py-1 text-xs rounded shadow-md hover:shadow-lg transition bg-blue-500 hover:bg-blue-600 text-white"
+            title={currentDescription ? "Edit connection description" : "Add connection description"}
+            aria-label={currentDescription ? "Edit connection description" : "Add connection description"}
+          >
+            {currentDescription ? '📝' : '➕'}
+          </button>
+          
+          <button
             onClick={handleDelete}
             className="px-2 py-1 text-xs rounded shadow-md hover:shadow-lg transition bg-red-500 hover:bg-red-600 text-white"
             title="Delete connection"
@@ -139,6 +241,16 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
             </div>
           )}
         </div>
+        
+        {showEditDialog && (
+          <ConnectionEditDialog
+            description={currentDescription}
+            showCube={currentShowCube}
+            onSave={handleDescriptionChange}
+            onCancel={() => setShowEditDialog(false)}
+            position={{ x: labelX, y: labelY }}
+          />
+        )}
       </EdgeLabelRenderer>
     </>
   );
