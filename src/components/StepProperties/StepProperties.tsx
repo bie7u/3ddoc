@@ -253,7 +253,7 @@ export const StepProperties = () => {
                                 onClick={() => handleDeleteSubstep(substep.id)}
                                 className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition"
                               >
-                                Del
+                                Delete
                               </button>
                             </div>
                           </div>

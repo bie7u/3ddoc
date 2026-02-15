@@ -13,7 +13,6 @@ interface StepCubeProps {
 
 // Substep cube component
 interface SubStepCubeProps {
-  substep: { id: string; title: string; description: string };
   position: [number, number, number];
   color: string;
   isParentActive: boolean;
@@ -104,7 +103,6 @@ const StepCube = ({ step, position, isActive }: StepCubeProps) => {
       {substeps.map((substep, index) => (
         <SubStepCube
           key={substep.id}
-          substep={substep}
           position={substepPositions[index]}
           color={color}
           isParentActive={isActive}
