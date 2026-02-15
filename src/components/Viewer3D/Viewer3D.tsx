@@ -20,11 +20,17 @@ interface SubStepCubeProps {
 
 const SubStepCube = ({ position, color, isParentActive }: SubStepCubeProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const originalY = position[1];
   
   useFrame((state) => {
-    if (meshRef.current && isParentActive) {
-      // Gentle bobbing animation for substeps
-      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 1.5) * 0.1;
+    if (meshRef.current) {
+      if (isParentActive) {
+        // Gentle bobbing animation for substeps
+        meshRef.current.position.y = originalY + Math.sin(state.clock.elapsedTime * 1.5) * 0.1;
+      } else {
+        // Reset to original position when not active
+        meshRef.current.position.y = originalY;
+      }
     }
   });
 

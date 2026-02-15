@@ -138,11 +138,18 @@ export const useAppStore = create<AppStore>((set, get) => ({
     
     const updatedProject = {
       ...project,
-      steps: project.steps.map((step) =>
-        step.id === stepId
-          ? { ...step, substeps: [...(step.substeps || []), substep] }
-          : step
-      ),
+      steps: project.steps.map((step) => {
+        if (step.id === stepId) {
+          const existingSubsteps = step.substeps || [];
+          // Check if substep with same ID already exists
+          if (existingSubsteps.some(s => s.id === substep.id)) {
+            console.warn(`Substep with ID ${substep.id} already exists`);
+            return step;
+          }
+          return { ...step, substeps: [...existingSubsteps, substep] };
+        }
+        return step;
+      }),
     };
     
     set({ project: updatedProject });
