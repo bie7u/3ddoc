@@ -67,7 +67,7 @@ export const StepProperties = () => {
 
   const handleAddNewStep = () => {
     const newStep: InstructionStep = {
-      id: `step-${Date.now()}`,
+      id: `step-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: 'New Step',
       description: 'Add description here',
       modelPath: 'box',
@@ -81,7 +81,7 @@ export const StepProperties = () => {
     if (!selectedStepId) return;
     
     const newSubstep: InstructionStep = {
-      id: `substep-${Date.now()}`,
+      id: `substep-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: 'New Substep',
       description: 'Add substep description',
       modelPath: 'box',
