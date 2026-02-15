@@ -58,7 +58,7 @@ interface StepCubeProps {
 
 // Individual step shape component
 const StepCube = ({ step, position, isActive }: StepCubeProps) => {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   
   // Gentle rotation animation

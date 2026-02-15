@@ -97,7 +97,7 @@ const ConnectionEditDialog = ({
         </label>
         <select
           value={tempShapeType || ''}
-          onChange={(e) => setTempShapeType(e.target.value ? e.target.value as ShapeType : undefined)}
+          onChange={(e) => setTempShapeType((e.target.value as ShapeType) || undefined)}
           className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">None</option>
