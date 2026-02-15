@@ -6,7 +6,8 @@ export const PreviewMode = () => {
     project, 
     currentPreviewStepIndex, 
     setCurrentPreviewStepIndex,
-    setPreviewMode 
+    setPreviewMode,
+    nodePositions
   } = useAppStore();
 
   if (!project || project.steps.length === 0) {
@@ -48,7 +49,7 @@ export const PreviewMode = () => {
   return (
     <div className="w-full h-full relative">
       {/* 3D Viewer */}
-      <Viewer3D project={project} currentStepId={currentStep.id} />
+      <Viewer3D project={project} currentStepId={currentStep.id} nodePositions={nodePositions} />
 
       {/* Exit button */}
       <button

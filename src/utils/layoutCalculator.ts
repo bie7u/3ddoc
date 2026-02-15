@@ -116,3 +116,68 @@ export const calculateHierarchicalLayout = (
 
   return positions;
 };
+
+/**
+ * Calculates layout for steps based on their actual positions in the creator.
+ * This ensures the 3D model matches the visual layout in the creator.
+ */
+export const calculateCreatorBasedLayout = (
+  steps: InstructionStep[],
+  nodePositions: Record<string, { x: number; y: number }>
+): Map<string, LayoutPosition> => {
+  const positions = new Map<string, LayoutPosition>();
+  
+  if (steps.length === 0) {
+    return positions;
+  }
+
+  // Find the bounds of the creator layout
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  
+  steps.forEach(step => {
+    const pos = nodePositions[step.id];
+    if (pos) {
+      minX = Math.min(minX, pos.x);
+      maxX = Math.max(maxX, pos.x);
+      minY = Math.min(minY, pos.y);
+      maxY = Math.max(maxY, pos.y);
+    }
+  });
+  
+  // If no positions found, fall back to simple layout
+  if (!isFinite(minX)) {
+    steps.forEach((step, index) => {
+      positions.set(step.id, { x: index * 4, y: 0, z: 0, depth: 0 });
+    });
+    return positions;
+  }
+  
+  // Calculate center point
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+  
+  // Scale factor to convert creator coordinates to 3D world coordinates
+  // Creator uses pixels, 3D world uses units
+  const scale = 0.02; // Adjust this to control spacing in 3D
+  
+  steps.forEach(step => {
+    const pos = nodePositions[step.id];
+    if (pos) {
+      // Map 2D creator position to 3D:
+      // - Creator X becomes 3D X (left-right)
+      // - Creator Y becomes 3D Z (depth/forward-back)
+      // - 3D Y is 0 (all on same horizontal plane)
+      const x = (pos.x - centerX) * scale;
+      const z = (pos.y - centerY) * scale;
+      const y = 0;
+      
+      positions.set(step.id, { x, y, z, depth: 0 });
+    } else {
+      // If no position found, place at origin
+      positions.set(step.id, { x: 0, y: 0, z: 0, depth: 0 });
+    }
+  });
+  
+  return positions;
+};
