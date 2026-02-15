@@ -51,14 +51,6 @@ export const GlowEdge = (props: EdgeProps<StepEdgeData>) => {
           animation: 'pulse 2s ease-in-out infinite'
         }} 
       />
-      <style>
-        {`
-          @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-          }
-        `}
-      </style>
     </>
   );
 };

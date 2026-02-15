@@ -140,9 +140,8 @@ export const StepBuilder = () => {
     (_event: React.MouseEvent, edge: Edge) => {
       setSelectedEdge(edge);
       setSelectedStepId(null);
-      // Position the menu near the click
-      const rect = (_event.currentTarget as HTMLElement).getBoundingClientRect();
-      setEdgeMenuPosition({ x: _event.clientX - rect.left, y: _event.clientY - rect.top });
+      // Position the menu at the click location relative to viewport
+      setEdgeMenuPosition({ x: _event.clientX, y: _event.clientY });
     },
     [setSelectedStepId]
   );
@@ -197,7 +196,7 @@ export const StepBuilder = () => {
       {/* Edge Style Menu */}
       {selectedEdge && edgeMenuPosition && (
         <div
-          className="absolute bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50"
+          className="fixed bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50"
           style={{
             left: `${edgeMenuPosition.x}px`,
             top: `${edgeMenuPosition.y}px`,
