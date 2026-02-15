@@ -121,6 +121,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set({ 
       nodePositions: { ...nodePositions, [id]: position }
     });
+    get().saveToLocalStorage();
   },
 
   setPreviewMode: (isPreview) => {
