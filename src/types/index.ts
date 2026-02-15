@@ -15,6 +15,12 @@ export interface Annotation {
   text: string;
 }
 
+export type ConnectionStyle = 'standard' | 'glass' | 'glow' | 'neon';
+
+export interface ConnectionData {
+  style?: ConnectionStyle;
+}
+
 export interface InstructionStep {
   id: string;
   title: string;
@@ -29,7 +35,7 @@ export interface ProjectData {
   id: string;
   name: string;
   steps: InstructionStep[];
-  connections: Edge[];
+  connections: Edge<ConnectionData>[];
 }
 
 export type StepNode = Node<InstructionStep>;

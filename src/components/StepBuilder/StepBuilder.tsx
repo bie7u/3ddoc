@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
   type Node,
   type Edge,
-  addEdge,
   Background,
   Controls,
   type Connection,
@@ -10,12 +9,16 @@ import ReactFlow, {
   useEdgesState,
   type NodeProps,
   type EdgeChange,
+  type EdgeProps,
   Handle,
   Position,
+  getBezierPath,
+  EdgeLabelRenderer,
+  BaseEdge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useAppStore } from '../../store';
-import type { InstructionStep } from '../../types';
+import type { InstructionStep, ConnectionData, ConnectionStyle } from '../../types';
 
 // Custom node component
 const StepNode = ({ data, selected }: NodeProps<InstructionStep>) => {
@@ -41,8 +44,91 @@ const StepNode = ({ data, selected }: NodeProps<InstructionStep>) => {
   );
 };
 
+// Custom edge component with style selector
+const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<ConnectionData>) => {
+  const { updateConnections, project } = useAppStore();
+  const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const [edgePath, labelX, labelY] = getBezierPath({ sourceX, sourceY, targetX, targetY });
+  
+  const currentStyle = data?.style || 'standard';
+  
+  const styles: { value: ConnectionStyle; label: string; color: string }[] = [
+    { value: 'standard', label: 'Standard', color: '#4b5563' },
+    { value: 'glass', label: 'Glass', color: '#60a5fa' },
+    { value: 'glow', label: 'Glow', color: '#fbbf24' },
+    { value: 'neon', label: 'Neon', color: '#ec4899' },
+  ];
+  
+  const handleStyleChange = (newStyle: ConnectionStyle) => {
+    if (!project) return;
+    
+    const updatedConnections = project.connections.map(conn => 
+      conn.id === id 
+        ? { ...conn, data: { ...conn.data, style: newStyle } }
+        : conn
+    );
+    
+    updateConnections(updatedConnections);
+    setShowStyleMenu(false);
+  };
+  
+  const currentStyleInfo = styles.find(s => s.value === currentStyle) || styles[0];
+  
+  return (
+    <>
+      <BaseEdge id={id} path={edgePath} />
+      <EdgeLabelRenderer>
+        <div
+          style={{
+            position: 'absolute',
+            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+            pointerEvents: 'all',
+          }}
+          className="nodrag nopan"
+        >
+          <button
+            onClick={() => setShowStyleMenu(!showStyleMenu)}
+            className="px-2 py-1 text-xs rounded shadow-md hover:shadow-lg transition"
+            style={{ 
+              backgroundColor: currentStyleInfo.color,
+              color: 'white',
+            }}
+          >
+            {currentStyleInfo.label}
+          </button>
+          
+          {showStyleMenu && (
+            <div className="absolute top-full mt-1 left-1/2 transform -translate-x-1/2 bg-white rounded shadow-lg border border-gray-200 z-10">
+              {styles.map(style => (
+                <button
+                  key={style.value}
+                  onClick={() => handleStyleChange(style.value)}
+                  className="block w-full text-left px-3 py-2 text-xs hover:bg-gray-100 transition whitespace-nowrap"
+                  style={{
+                    backgroundColor: currentStyle === style.value ? '#f3f4f6' : 'white',
+                  }}
+                >
+                  <span 
+                    className="inline-block w-3 h-3 rounded-full mr-2"
+                    style={{ backgroundColor: style.color }}
+                  />
+                  {style.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </EdgeLabelRenderer>
+    </>
+  );
+};
+
 const nodeTypes = {
   stepNode: StepNode,
+};
+
+const edgeTypes = {
+  default: CustomEdge,
 };
 
 export const StepBuilder = () => {
@@ -92,7 +178,17 @@ export const StepBuilder = () => {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      const newEdges = addEdge(connection, edges);
+      if (!connection.source || !connection.target) return;
+      
+      const newEdge: Edge<ConnectionData> = {
+        id: `e${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        source: connection.source,
+        target: connection.target,
+        sourceHandle: connection.sourceHandle,
+        targetHandle: connection.targetHandle,
+        data: { style: 'standard' as ConnectionStyle },
+      };
+      const newEdges = [...edges, newEdge];
       setEdges(newEdges);
       updateConnections(newEdges);
     },
@@ -141,6 +237,7 @@ export const StepBuilder = () => {
         onPaneClick={onPaneClick}
         onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         className="bg-gray-50"
       >
