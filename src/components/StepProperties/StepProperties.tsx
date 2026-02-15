@@ -3,7 +3,7 @@ import { useAppStore } from '../../store';
 import type { InstructionStep } from '../../types';
 
 export const StepProperties = () => {
-  const { project, selectedStepId, updateStep, deleteStep, addStep, nodePositions } = useAppStore();
+  const { project, selectedStepId, updateStep, deleteStep, addStep } = useAppStore();
   
   const selectedStep = project?.steps.find((step) => step.id === selectedStepId);
   
@@ -52,29 +52,6 @@ export const StepProperties = () => {
       highlightColor: '#4299e1',
     };
     addStep(newStep);
-  };
-
-  const handleAddSideStep = (direction: 'left' | 'right') => {
-    if (!selectedStepId) return;
-
-    const newStep: InstructionStep = {
-      id: `step-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      title: `${direction === 'left' ? 'Left' : 'Right'} Step`,
-      description: 'Add description here',
-      modelPath: 'box',
-      cameraPosition: { x: 5, y: 5, z: 5, targetX: 0, targetY: 0, targetZ: 0 },
-      highlightColor: '#4299e1',
-    };
-
-    // Calculate position relative to selected step
-    const selectedPosition = nodePositions[selectedStepId] || { x: 100, y: 100 };
-    const offset = direction === 'left' ? -300 : 300;
-    const newPosition = {
-      x: selectedPosition.x + offset,
-      y: selectedPosition.y,
-    };
-
-    addStep(newStep, newPosition);
   };
 
   return (
@@ -152,24 +129,6 @@ export const StepProperties = () => {
               >
                 Add New Step
               </button>
-
-              <div className="pt-2 border-t border-gray-200">
-                <p className="text-sm font-medium text-gray-700 mb-2">Add Side Steps</p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleAddSideStep('left')}
-                    className="flex-1 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition text-sm"
-                  >
-                    ← Add Left Step
-                  </button>
-                  <button
-                    onClick={() => handleAddSideStep('right')}
-                    className="flex-1 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition text-sm"
-                  >
-                    Add Right Step →
-                  </button>
-                </div>
-              </div>
               
               <button
                 onClick={handleDelete}

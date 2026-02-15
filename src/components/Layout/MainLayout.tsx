@@ -77,8 +77,8 @@ export const MainLayout = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Step Builder */}
-        <div className="w-1/3 min-w-[300px] border-r border-gray-300 bg-white">
+        {/* Left Panel - Step Builder (expanded) */}
+        <div className="w-1/2 min-w-[400px] border-r border-gray-300 bg-white">
           <div className="h-full flex flex-col">
             <div className="p-3 bg-gray-50 border-b border-gray-200">
               <h2 className="font-semibold text-gray-700">Step Flow Editor</h2>
@@ -89,8 +89,8 @@ export const MainLayout = () => {
           </div>
         </div>
 
-        {/* Center Panel - 3D Viewer */}
-        <div className="flex-1 relative">
+        {/* Center Panel - 3D Viewer (reduced) */}
+        <div className="w-1/3 relative">
           <div className="h-full">
             <Viewer3D project={project} currentStepId={selectedStepId} />
           </div>

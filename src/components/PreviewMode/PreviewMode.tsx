@@ -48,7 +48,7 @@ export const PreviewMode = () => {
   return (
     <div className="w-full h-full relative">
       {/* 3D Viewer */}
-      <Viewer3D project={project} currentStepId={currentStep.id} isPreviewMode={true} />
+      <Viewer3D project={project} currentStepId={currentStep.id} />
 
       {/* Exit button */}
       <button
