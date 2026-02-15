@@ -24,6 +24,10 @@ interface AppStore {
   setCurrentPreviewStepIndex: (index: number) => void;
   saveToLocalStorage: () => void;
   loadFromLocalStorage: () => void;
+  // Substep actions
+  addSubstep: (parentId: string, substep: InstructionStep) => void;
+  updateSubstep: (parentId: string, substepId: string, updates: Partial<InstructionStep>) => void;
+  deleteSubstep: (parentId: string, substepId: string) => void;
 }
 
 const STORAGE_KEY = '3ddoc-project';
@@ -127,5 +131,61 @@ export const useAppStore = create<AppStore>((set, get) => ({
         console.error('Failed to load project from localStorage', error);
       }
     }
+  },
+
+  addSubstep: (parentId, substep) => {
+    const { project } = get();
+    if (!project) return;
+    
+    const updatedSteps = project.steps.map((step) => {
+      if (step.id === parentId) {
+        return {
+          ...step,
+          substeps: [...(step.substeps || []), { ...substep, parentId }],
+        };
+      }
+      return step;
+    });
+    
+    set({ project: { ...project, steps: updatedSteps } });
+    get().saveToLocalStorage();
+  },
+
+  updateSubstep: (parentId, substepId, updates) => {
+    const { project } = get();
+    if (!project) return;
+    
+    const updatedSteps = project.steps.map((step) => {
+      if (step.id === parentId && step.substeps) {
+        return {
+          ...step,
+          substeps: step.substeps.map((substep) =>
+            substep.id === substepId ? { ...substep, ...updates } : substep
+          ),
+        };
+      }
+      return step;
+    });
+    
+    set({ project: { ...project, steps: updatedSteps } });
+    get().saveToLocalStorage();
+  },
+
+  deleteSubstep: (parentId, substepId) => {
+    const { project } = get();
+    if (!project) return;
+    
+    const updatedSteps = project.steps.map((step) => {
+      if (step.id === parentId && step.substeps) {
+        return {
+          ...step,
+          substeps: step.substeps.filter((substep) => substep.id !== substepId),
+        };
+      }
+      return step;
+    });
+    
+    set({ project: { ...project, steps: updatedSteps } });
+    get().saveToLocalStorage();
   },
 }));
