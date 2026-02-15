@@ -108,7 +108,7 @@ const UnifiedModel = ({ project, currentStepId }: UnifiedModelProps) => {
       const x = index * spacing - totalWidth / 2;
       return [x, 0, 0] as [number, number, number];
     });
-  }, [steps.length, spacing]);
+  }, [steps, spacing]);
 
   // Memoize connections calculation with optimized lookups
   const connections = useMemo(() => {

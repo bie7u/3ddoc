@@ -8,7 +8,7 @@ export const sampleProject: ProjectData = {
       id: 'step-1',
       title: 'Introduction',
       description: 'Welcome to this 3D assembly tutorial. We will guide you through each step.',
-      modelPath: 'box', // Using procedural geometry
+      modelPath: 'box',
       cameraPosition: { x: 5, y: 5, z: 5, targetX: 0, targetY: 0, targetZ: 0 },
       highlightColor: '#4299e1',
     },
@@ -19,6 +19,26 @@ export const sampleProject: ProjectData = {
       modelPath: 'box',
       cameraPosition: { x: 3, y: 4, z: 6, targetX: 0, targetY: 0, targetZ: 0 },
       highlightColor: '#48bb78',
+      substeps: [
+        {
+          id: 'substep-2-1',
+          title: 'Check main body',
+          description: 'Verify the main body component is present',
+          modelPath: 'box',
+          cameraPosition: { x: 3, y: 4, z: 6, targetX: 0, targetY: 0, targetZ: 0 },
+          highlightColor: '#38a169',
+          parentId: 'step-2',
+        },
+        {
+          id: 'substep-2-2',
+          title: 'Check fasteners',
+          description: 'Count all screws, bolts, and fasteners',
+          modelPath: 'box',
+          cameraPosition: { x: 3, y: 4, z: 6, targetX: 0, targetY: 0, targetZ: 0 },
+          highlightColor: '#2f855a',
+          parentId: 'step-2',
+        },
+      ],
     },
     {
       id: 'step-3',
@@ -27,6 +47,26 @@ export const sampleProject: ProjectData = {
       modelPath: 'box',
       cameraPosition: { x: -4, y: 3, z: 5, targetX: 0, targetY: 0, targetZ: 0 },
       highlightColor: '#ed8936',
+      substeps: [
+        {
+          id: 'substep-3-1',
+          title: 'Align components',
+          description: 'Carefully align the main components before fastening',
+          modelPath: 'box',
+          cameraPosition: { x: -4, y: 3, z: 5, targetX: 0, targetY: 0, targetZ: 0 },
+          highlightColor: '#dd6b20',
+          parentId: 'step-3',
+        },
+        {
+          id: 'substep-3-2',
+          title: 'Secure fasteners',
+          description: 'Tighten all fasteners in a diagonal pattern',
+          modelPath: 'box',
+          cameraPosition: { x: -4, y: 3, z: 5, targetX: 0, targetY: 0, targetZ: 0 },
+          highlightColor: '#c05621',
+          parentId: 'step-3',
+        },
+      ],
     },
     {
       id: 'step-4',

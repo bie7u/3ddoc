@@ -23,6 +23,8 @@ export interface InstructionStep {
   cameraPosition: CameraPosition;
   annotations?: Annotation[];
   highlightColor?: string;
+  substeps?: InstructionStep[];
+  parentId?: string;
 }
 
 export interface ProjectData {

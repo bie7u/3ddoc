@@ -19,6 +19,8 @@ import type { InstructionStep } from '../../types';
 
 // Custom node component
 const StepNode = ({ data, selected }: NodeProps<InstructionStep>) => {
+  const substepCount = data.substeps?.length || 0;
+  
   return (
     <div
       className={`px-4 py-3 rounded-lg border-2 bg-white shadow-lg min-w-[200px] ${
@@ -26,7 +28,14 @@ const StepNode = ({ data, selected }: NodeProps<InstructionStep>) => {
       }`}
     >
       <Handle type="target" position={Position.Top} />
-      <div className="font-bold text-sm mb-1">{data.title}</div>
+      <div className="font-bold text-sm mb-1 flex items-center justify-between">
+        <span>{data.title}</span>
+        {substepCount > 0 && (
+          <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+            {substepCount} substep{substepCount !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
       <div className="text-xs text-gray-600 line-clamp-2">{data.description}</div>
       <div
         className="mt-2 h-2 rounded"

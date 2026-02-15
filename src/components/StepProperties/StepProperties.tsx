@@ -3,11 +3,27 @@ import { useAppStore } from '../../store';
 import type { InstructionStep } from '../../types';
 
 export const StepProperties = () => {
-  const { project, selectedStepId, updateStep, deleteStep, addStep } = useAppStore();
+  const { 
+    project, 
+    selectedStepId, 
+    updateStep, 
+    deleteStep, 
+    addStep,
+    addSubstep,
+    updateSubstep,
+    deleteSubstep 
+  } = useAppStore();
   
   const selectedStep = project?.steps.find((step) => step.id === selectedStepId);
   
   const [formData, setFormData] = useState<Partial<InstructionStep>>({
+    title: '',
+    description: '',
+    highlightColor: '#4299e1',
+  });
+
+  const [editingSubstepId, setEditingSubstepId] = useState<string | null>(null);
+  const [substepFormData, setSubstepFormData] = useState<Partial<InstructionStep>>({
     title: '',
     description: '',
     highlightColor: '#4299e1',
@@ -28,6 +44,13 @@ export const StepProperties = () => {
     value: string | number
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubstepInputChange = (
+    field: keyof InstructionStep,
+    value: string | number
+  ) => {
+    setSubstepFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = () => {
@@ -52,6 +75,59 @@ export const StepProperties = () => {
       highlightColor: '#4299e1',
     };
     addStep(newStep);
+  };
+
+  const handleAddSubstep = () => {
+    if (!selectedStepId) return;
+    
+    const newSubstep: InstructionStep = {
+      id: `substep-${Date.now()}`,
+      title: 'New Substep',
+      description: 'Add substep description',
+      modelPath: 'box',
+      cameraPosition: { x: 5, y: 5, z: 5, targetX: 0, targetY: 0, targetZ: 0 },
+      highlightColor: '#48bb78',
+    };
+    addSubstep(selectedStepId, newSubstep);
+  };
+
+  const handleEditSubstep = (substep: InstructionStep) => {
+    setEditingSubstepId(substep.id);
+    setSubstepFormData({
+      title: substep.title,
+      description: substep.description,
+      highlightColor: substep.highlightColor || '#4299e1',
+    });
+  };
+
+  const handleSaveSubstep = () => {
+    if (selectedStepId && editingSubstepId) {
+      updateSubstep(selectedStepId, editingSubstepId, substepFormData);
+      setEditingSubstepId(null);
+      setSubstepFormData({
+        title: '',
+        description: '',
+        highlightColor: '#4299e1',
+      });
+    }
+  };
+
+  const handleDeleteSubstep = (substepId: string) => {
+    if (selectedStepId && window.confirm('Are you sure you want to delete this substep?')) {
+      deleteSubstep(selectedStepId, substepId);
+      if (editingSubstepId === substepId) {
+        setEditingSubstepId(null);
+      }
+    }
+  };
+
+  const handleCancelEditSubstep = () => {
+    setEditingSubstepId(null);
+    setSubstepFormData({
+      title: '',
+      description: '',
+      highlightColor: '#4299e1',
+    });
   };
 
   return (
@@ -136,6 +212,105 @@ export const StepProperties = () => {
               >
                 Delete Step
               </button>
+            </div>
+
+            {/* Substeps Section */}
+            <div className="pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-700">Substeps</h3>
+                <button
+                  onClick={handleAddSubstep}
+                  className="px-3 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition"
+                >
+                  + Add Substep
+                </button>
+              </div>
+
+              {selectedStep.substeps && selectedStep.substeps.length > 0 ? (
+                <div className="space-y-2">
+                  {selectedStep.substeps.map((substep, index) => (
+                    <div key={substep.id} className="border border-gray-200 rounded p-3 bg-gray-50">
+                      {editingSubstepId === substep.id ? (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={substepFormData.title || ''}
+                            onChange={(e) => handleSubstepInputChange('title', e.target.value)}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Substep title"
+                          />
+                          <textarea
+                            value={substepFormData.description || ''}
+                            onChange={(e) => handleSubstepInputChange('description', e.target.value)}
+                            rows={2}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Substep description"
+                          />
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              value={substepFormData.highlightColor || '#4299e1'}
+                              onChange={(e) => handleSubstepInputChange('highlightColor', e.target.value)}
+                              className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
+                            />
+                            <input
+                              type="text"
+                              value={substepFormData.highlightColor || '#4299e1'}
+                              onChange={(e) => handleSubstepInputChange('highlightColor', e.target.value)}
+                              className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleSaveSubstep}
+                              className="flex-1 px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={handleCancelEditSubstep}
+                              className="flex-1 px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex items-start justify-between mb-1">
+                            <div className="flex-1">
+                              <div className="font-medium text-sm text-gray-800">
+                                {index + 1}. {substep.title}
+                              </div>
+                              <div className="text-xs text-gray-600 mt-1">{substep.description}</div>
+                            </div>
+                            <div
+                              className="w-4 h-4 rounded ml-2 flex-shrink-0"
+                              style={{ backgroundColor: substep.highlightColor || '#4299e1' }}
+                            />
+                          </div>
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              onClick={() => handleEditSubstep(substep)}
+                              className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSubstep(substep.id)}
+                              className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500 italic">No substeps added yet</p>
+              )}
             </div>
 
             <div className="pt-4 border-t border-gray-200">
