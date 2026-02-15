@@ -8,6 +8,12 @@ interface LayoutPosition {
   depth: number;
 }
 
+// Layout constants
+const HORIZONTAL_SPACING = 4;
+const DEPTH_SPACING = 5;
+const FALLBACK_STEP_SPACING = 4;
+const CREATOR_TO_3D_SCALE_FACTOR = 0.02;
+
 /**
  * Calculates a hierarchical layout for steps based on their connections.
  * Steps in parallel branches are positioned side-by-side.
@@ -89,22 +95,19 @@ export const calculateHierarchicalLayout = (
   });
 
   // Calculate positions
-  const horizontalSpacing = 4;
-  const depthSpacing = 5;
-
   levelGroups.forEach((nodeIds, depth) => {
     const nodeCount = nodeIds.length;
     
     // For nodes at the same depth, position them side by side
     nodeIds.forEach((nodeId, index) => {
-      const z = -depth * depthSpacing; // Depth in z-axis
+      const z = -depth * DEPTH_SPACING; // Depth in z-axis
       
       // Calculate horizontal offset for parallel nodes
       let x = 0;
       if (nodeCount > 1) {
         // Center the group
-        const totalWidth = (nodeCount - 1) * horizontalSpacing;
-        x = index * horizontalSpacing - totalWidth / 2;
+        const totalWidth = (nodeCount - 1) * HORIZONTAL_SPACING;
+        x = index * HORIZONTAL_SPACING - totalWidth / 2;
       }
       
       // Slight vertical variation to avoid complete overlap in some views
@@ -148,7 +151,7 @@ export const calculateCreatorBasedLayout = (
   // If no positions found, fall back to simple layout
   if (!isFinite(minX)) {
     steps.forEach((step, index) => {
-      positions.set(step.id, { x: index * 4, y: 0, z: 0, depth: 0 });
+      positions.set(step.id, { x: index * FALLBACK_STEP_SPACING, y: 0, z: 0, depth: 0 });
     });
     return positions;
   }
@@ -157,10 +160,6 @@ export const calculateCreatorBasedLayout = (
   const centerX = (minX + maxX) / 2;
   const centerY = (minY + maxY) / 2;
   
-  // Scale factor to convert creator coordinates to 3D world coordinates
-  // Creator uses pixels, 3D world uses units
-  const scale = 0.02; // Adjust this to control spacing in 3D
-  
   steps.forEach(step => {
     const pos = nodePositions[step.id];
     if (pos) {
@@ -168,8 +167,8 @@ export const calculateCreatorBasedLayout = (
       // - Creator X becomes 3D X (left-right)
       // - Creator Y becomes 3D Z (depth/forward-back)
       // - 3D Y is 0 (all on same horizontal plane)
-      const x = (pos.x - centerX) * scale;
-      const z = (pos.y - centerY) * scale;
+      const x = (pos.x - centerX) * CREATOR_TO_3D_SCALE_FACTOR;
+      const z = (pos.y - centerY) * CREATOR_TO_3D_SCALE_FACTOR;
       const y = 0;
       
       positions.set(step.id, { x, y, z, depth: 0 });
