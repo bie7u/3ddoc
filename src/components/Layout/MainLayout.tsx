@@ -28,8 +28,6 @@ export const MainLayout = () => {
     }
   }, [project, setProject]);
 
-  const selectedStep = project?.steps.find((step) => step.id === selectedStepId);
-
   const handleTogglePreview = () => {
     setPreviewMode(!isPreviewMode);
   };
@@ -90,12 +88,12 @@ export const MainLayout = () => {
         {/* Center Panel - 3D Viewer */}
         <div className="flex-1 relative">
           <div className="h-full">
-            <Viewer3D step={selectedStep || null} />
+            <Viewer3D project={project} currentStepId={selectedStepId} />
           </div>
-          {!selectedStep && (
+          {!selectedStepId && project && project.steps.length > 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-black bg-opacity-50 text-white px-6 py-4 rounded-lg">
-                <p className="text-center">Select a step to view its 3D model</p>
+                <p className="text-center">Select a step to highlight it in the 3D model</p>
               </div>
             </div>
           )}
