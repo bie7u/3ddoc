@@ -19,12 +19,14 @@ export const MainLayout = () => {
   // Load project on mount
   useEffect(() => {
     loadFromLocalStorage();
-    
-    // If no project loaded, use sample data
+  }, [loadFromLocalStorage]);
+
+  // Set sample project if none loaded
+  useEffect(() => {
     if (!project) {
       setProject(sampleProject);
     }
-  }, []);
+  }, [project, setProject]);
 
   const selectedStep = project?.steps.find((step) => step.id === selectedStepId);
 

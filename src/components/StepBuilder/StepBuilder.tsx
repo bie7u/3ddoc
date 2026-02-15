@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, {
   type Node,
   type Edge,
@@ -9,6 +9,7 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   type NodeProps,
+  type EdgeChange,
   Handle,
   Position,
 } from 'reactflow';
@@ -62,8 +63,8 @@ export const StepBuilder = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  // Update nodes when project changes
-  useMemo(() => {
+  // Update nodes when project steps change
+  useEffect(() => {
     if (project) {
       const updatedNodes = project.steps.map((step) => {
         const existingNode = nodes.find(n => n.id === step.id);
@@ -76,14 +77,14 @@ export const StepBuilder = () => {
       });
       setNodes(updatedNodes);
     }
-  }, [project?.steps]);
+  }, [project?.steps, setNodes]);
 
   // Update edges when connections change
-  useMemo(() => {
+  useEffect(() => {
     if (project) {
       setEdges(project.connections);
     }
-  }, [project?.connections]);
+  }, [project?.connections, setEdges]);
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -95,7 +96,7 @@ export const StepBuilder = () => {
   );
 
   const onEdgesChange_ = useCallback(
-    (changes: any) => {
+    (changes: EdgeChange[]) => {
       onEdgesChange(changes);
       // Update store after edge changes (e.g., deletions)
       setTimeout(() => {
