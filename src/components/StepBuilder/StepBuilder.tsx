@@ -16,6 +16,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { useAppStore } from '../../store';
 import type { InstructionStep } from '../../types';
+import { DefaultEdge, GlowEdge, GlassEdge, DashedEdge } from './CustomEdges';
 
 // Custom node component
 const StepNode = ({ data, selected }: NodeProps<InstructionStep>) => {
@@ -45,6 +46,13 @@ const nodeTypes = {
   stepNode: StepNode,
 };
 
+const edgeTypes = {
+  default: DefaultEdge,
+  glow: GlowEdge,
+  glass: GlassEdge,
+  dashed: DashedEdge,
+};
+
 export const StepBuilder = () => {
   const { project, updateConnections, setSelectedStepId, nodePositions, updateNodePosition } = useAppStore();
   
@@ -61,7 +69,10 @@ export const StepBuilder = () => {
   }, [project, nodePositions]);
 
   const initialEdges: Edge[] = useMemo(() => {
-    return project?.connections || [];
+    return (project?.connections || []).map(edge => ({
+      ...edge,
+      type: edge.data?.style || 'default',
+    }));
   }, [project]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -141,6 +152,7 @@ export const StepBuilder = () => {
         onPaneClick={onPaneClick}
         onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         className="bg-gray-50"
       >
