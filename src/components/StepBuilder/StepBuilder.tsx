@@ -75,6 +75,11 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
   const handleDelete = () => {
     if (!project) return;
     
+    // Show confirmation dialog before deleting
+    if (!window.confirm('Are you sure you want to delete this connection?')) {
+      return;
+    }
+    
     const updatedConnections = project.connections.filter(conn => conn.id !== id);
     updateConnections(updatedConnections);
   };
@@ -108,6 +113,7 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
             onClick={handleDelete}
             className="px-2 py-1 text-xs rounded shadow-md hover:shadow-lg transition bg-red-500 hover:bg-red-600 text-white"
             title="Delete connection"
+            aria-label="Delete connection"
           >
             ✕
           </button>
