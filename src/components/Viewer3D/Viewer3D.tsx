@@ -79,7 +79,7 @@ interface ConnectionTubeProps {
 }
 
 // Connection tube between steps
-const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard', description, showCube, onClick }: ConnectionTubeProps) => {
+const ConnectionTube = ({ startPos, endPos, isActive, style = 'standard', showCube, onClick }: ConnectionTubeProps) => {
   const tubeRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const cubeRef = useRef<THREE.Mesh>(null);
@@ -274,15 +274,16 @@ const UnifiedModel = ({ project, currentStepId, nodePositions, onConnectionClick
       .map(conn => {
         const sourceIndex = stepIdToIndex.get(conn.source);
         const targetIndex = stepIdToIndex.get(conn.target);
-        return sourceIndex !== undefined && targetIndex !== undefined
-          ? { 
-              sourceIndex, 
-              targetIndex, 
-              style: conn.data?.style || 'standard' as ConnectionStyle,
-              description: conn.data?.description,
-              showCube: conn.data?.showCube
-            }
-          : null;
+        if (sourceIndex === undefined || targetIndex === undefined) {
+          return null;
+        }
+        return { 
+          sourceIndex, 
+          targetIndex, 
+          style: conn.data?.style || 'standard' as ConnectionStyle,
+          description: conn.data?.description,
+          showCube: conn.data?.showCube
+        } as ConnectionWithIndices;
       })
       .filter((c): c is ConnectionWithIndices => c !== null);
   }, [project.connections, steps]);
