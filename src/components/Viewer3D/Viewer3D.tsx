@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
@@ -69,11 +69,13 @@ interface ConnectionTubeProps {
 const ConnectionTube = ({ startPos, endPos, isActive }: ConnectionTubeProps) => {
   const tubeRef = useRef<THREE.Mesh>(null);
   
-  // Create a path from start to end
-  const path = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(...startPos),
-    new THREE.Vector3(...endPos),
-  ]);
+  // Memoize the path to avoid recreating on every render
+  const path = useMemo(() => {
+    return new THREE.CatmullRomCurve3([
+      new THREE.Vector3(...startPos),
+      new THREE.Vector3(...endPos),
+    ]);
+  }, [startPos, endPos]);
 
   return (
     <mesh ref={tubeRef}>
@@ -99,19 +101,30 @@ const UnifiedModel = ({ project, currentStepId }: UnifiedModelProps) => {
   const steps = project.steps;
   const spacing = 4; // Space between cubes
   
-  // Calculate positions for cubes in a line
-  const positions: [number, number, number][] = steps.map((_, index) => {
-    const totalWidth = (steps.length - 1) * spacing;
-    const x = index * spacing - totalWidth / 2;
-    return [x, 0, 0];
-  });
+  // Memoize positions calculation
+  const positions: [number, number, number][] = useMemo(() => {
+    return steps.map((_, index) => {
+      const totalWidth = (steps.length - 1) * spacing;
+      const x = index * spacing - totalWidth / 2;
+      return [x, 0, 0] as [number, number, number];
+    });
+  }, [steps.length, spacing]);
 
-  // Find connections between steps
-  const connections = project.connections.map(conn => {
-    const sourceIndex = steps.findIndex(s => s.id === conn.source);
-    const targetIndex = steps.findIndex(s => s.id === conn.target);
-    return { sourceIndex, targetIndex };
-  }).filter(c => c.sourceIndex !== -1 && c.targetIndex !== -1);
+  // Memoize connections calculation with optimized lookups
+  const connections = useMemo(() => {
+    // Create a map for fast step ID to index lookup
+    const stepIdToIndex = new Map(steps.map((s, i) => [s.id, i]));
+    
+    return project.connections
+      .map(conn => {
+        const sourceIndex = stepIdToIndex.get(conn.source);
+        const targetIndex = stepIdToIndex.get(conn.target);
+        return sourceIndex !== undefined && targetIndex !== undefined
+          ? { sourceIndex, targetIndex }
+          : null;
+      })
+      .filter((c): c is { sourceIndex: number; targetIndex: number } => c !== null);
+  }, [project.connections, steps]);
 
   // Check if connection is active (involves current step)
   const isConnectionActive = (sourceIndex: number, targetIndex: number) => {
