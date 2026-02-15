@@ -229,9 +229,10 @@ const CameraController = ({ project, currentStepId }: CameraControllerProps) => 
 interface Viewer3DProps {
   project: ProjectData | null;
   currentStepId: string | null;
+  isPreviewMode?: boolean;
 }
 
-export const Viewer3D = ({ project, currentStepId }: Viewer3DProps) => {
+export const Viewer3D = ({ project, currentStepId, isPreviewMode = false }: Viewer3DProps) => {
   const currentStep = project?.steps.find(s => s.id === currentStepId);
   
   return (
@@ -261,8 +262,8 @@ export const Viewer3D = ({ project, currentStepId }: Viewer3DProps) => {
         {/* Grid helper */}
         <gridHelper args={[20, 20]} />
         
-        {/* Controls */}
-        <OrbitControls enableDamping dampingFactor={0.05} />
+        {/* Controls - disabled in preview mode to allow camera tracking */}
+        {!isPreviewMode && <OrbitControls enableDamping dampingFactor={0.05} />}
       </Canvas>
       
       {/* Overlay info */}
