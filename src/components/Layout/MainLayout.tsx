@@ -39,7 +39,11 @@ export const MainLayout = () => {
   };
 
   if (isPreviewMode) {
-    return <PreviewMode />;
+    return (
+      <div className="w-screen h-screen">
+        <PreviewMode />
+      </div>
+    );
   }
 
   return (
