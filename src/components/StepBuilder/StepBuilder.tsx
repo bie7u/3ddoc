@@ -72,6 +72,18 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
     setShowStyleMenu(false);
   };
   
+  const handleDelete = () => {
+    if (!project) return;
+    
+    // Show confirmation dialog before deleting
+    if (!window.confirm('Are you sure you want to delete this connection?')) {
+      return;
+    }
+    
+    const updatedConnections = project.connections.filter(conn => conn.id !== id);
+    updateConnections(updatedConnections);
+  };
+  
   const currentStyleInfo = styles.find(s => s.value === currentStyle) || styles[0];
   
   return (
@@ -84,7 +96,7 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
             pointerEvents: 'all',
           }}
-          className="nodrag nopan"
+          className="nodrag nopan flex gap-1"
         >
           <button
             onClick={() => setShowStyleMenu(!showStyleMenu)}
@@ -95,6 +107,15 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
             }}
           >
             {currentStyleInfo.label}
+          </button>
+          
+          <button
+            onClick={handleDelete}
+            className="px-2 py-1 text-xs rounded shadow-md hover:shadow-lg transition bg-red-500 hover:bg-red-600 text-white"
+            title="Delete connection"
+            aria-label="Delete connection"
+          >
+            ✕
           </button>
           
           {showStyleMenu && (
@@ -198,12 +219,10 @@ export const StepBuilder = () => {
   const onEdgesChange_ = useCallback(
     (changes: EdgeChange[]) => {
       onEdgesChange(changes);
-      // Update store after edge changes (e.g., deletions)
-      setTimeout(() => {
-        updateConnections(edges);
-      }, 0);
+      // Don't update the store here - let React Flow handle the UI state
+      // The store will be updated by explicit actions like handleDelete or onConnect
     },
-    [onEdgesChange, edges, updateConnections]
+    [onEdgesChange]
   );
 
   const onNodeClick = useCallback(
