@@ -13,12 +13,20 @@ export const sampleProject: ProjectData = {
       highlightColor: '#4299e1',
     },
     {
-      id: 'step-2',
-      title: 'Identify Components',
-      description: 'First, identify all the components you will need for assembly.',
+      id: 'step-2a',
+      title: 'Identify Parts A',
+      description: 'Identify the main frame components.',
       modelPath: 'box',
       cameraPosition: { x: 3, y: 4, z: 6, targetX: 0, targetY: 0, targetZ: 0 },
       highlightColor: '#48bb78',
+    },
+    {
+      id: 'step-2b',
+      title: 'Identify Parts B',
+      description: 'Identify the fasteners and connectors.',
+      modelPath: 'box',
+      cameraPosition: { x: -3, y: 4, z: 6, targetX: 0, targetY: 0, targetZ: 0 },
+      highlightColor: '#f6ad55',
     },
     {
       id: 'step-3',
@@ -38,8 +46,13 @@ export const sampleProject: ProjectData = {
     },
   ],
   connections: [
-    { id: 'e1-2', source: 'step-1', target: 'step-2' },
-    { id: 'e2-3', source: 'step-2', target: 'step-3' },
+    // Step 1 branches into two parallel steps (2a and 2b)
+    { id: 'e1-2a', source: 'step-1', target: 'step-2a' },
+    { id: 'e1-2b', source: 'step-1', target: 'step-2b' },
+    // Both parallel steps converge into step 3
+    { id: 'e2a-3', source: 'step-2a', target: 'step-3' },
+    { id: 'e2b-3', source: 'step-2b', target: 'step-3' },
+    // Step 3 to final step
     { id: 'e3-4', source: 'step-3', target: 'step-4' },
   ],
 };
