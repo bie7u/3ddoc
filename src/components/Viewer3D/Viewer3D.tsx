@@ -400,6 +400,7 @@ const CameraController = ({ project, currentStepId, nodePositions, cameraMode }:
   const { camera } = useThree();
   const targetPos = useRef(new THREE.Vector3());
   const targetLookAt = useRef(new THREE.Vector3());
+  const previousStepId = useRef<string | null>(null);
 
   // Memoize layout calculation
   const layout = useMemo(() => {
@@ -407,36 +408,41 @@ const CameraController = ({ project, currentStepId, nodePositions, cameraMode }:
   }, [project.steps, nodePositions]);
 
   useEffect(() => {
-    if (!currentStepId || !project) {
-      // Default camera position to see all cubes
-      targetPos.current.set(0, 10, 15);
-      targetLookAt.current.set(0, 0, 0);
-      return;
-    }
+    // When switching to auto mode from free mode, or when step changes in auto mode
+    if (cameraMode === 'auto' && currentStepId !== previousStepId.current) {
+      previousStepId.current = currentStepId;
+      
+      if (!currentStepId || !project) {
+        // Default camera position to see all cubes
+        targetPos.current.set(0, 10, 15);
+        targetLookAt.current.set(0, 0, 0);
+        return;
+      }
 
-    const currentStep = project.steps.find(s => s.id === currentStepId);
-    if (!currentStep) {
-      targetPos.current.set(0, 10, 15);
-      targetLookAt.current.set(0, 0, 0);
-      return;
-    }
+      const currentStep = project.steps.find(s => s.id === currentStepId);
+      if (!currentStep) {
+        targetPos.current.set(0, 10, 15);
+        targetLookAt.current.set(0, 0, 0);
+        return;
+      }
 
-    // Get position of current step from memoized layout
-    const stepPos = layout.get(currentStepId);
-    
-    if (!stepPos) {
-      targetPos.current.set(0, 10, 15);
-      targetLookAt.current.set(0, 0, 0);
-      return;
+      // Get position of current step from memoized layout
+      const stepPos = layout.get(currentStepId);
+      
+      if (!stepPos) {
+        targetPos.current.set(0, 10, 15);
+        targetLookAt.current.set(0, 0, 0);
+        return;
+      }
+      
+      // Position camera to focus on current cube but keep context visible
+      const cameraDistance = 10;
+      const cameraHeight = 6;
+      
+      targetPos.current.set(stepPos.x, cameraHeight, stepPos.z + cameraDistance);
+      targetLookAt.current.set(stepPos.x, stepPos.y, stepPos.z);
     }
-    
-    // Position camera to focus on current cube but keep context visible
-    const cameraDistance = 10;
-    const cameraHeight = 6;
-    
-    targetPos.current.set(stepPos.x, cameraHeight, stepPos.z + cameraDistance);
-    targetLookAt.current.set(stepPos.x, stepPos.y, stepPos.z);
-  }, [currentStepId, project, layout]);
+  }, [currentStepId, project, layout, cameraMode]);
 
   useFrame(() => {
     // Skip camera animation in free mode

@@ -7,7 +7,9 @@ export const PreviewMode = () => {
     currentPreviewStepIndex, 
     setCurrentPreviewStepIndex,
     setPreviewMode,
-    nodePositions
+    nodePositions,
+    cameraMode,
+    setCameraMode
   } = useAppStore();
 
   if (!project || project.steps.length === 0) {
@@ -49,7 +51,34 @@ export const PreviewMode = () => {
   return (
     <div className="w-full h-full relative">
       {/* 3D Viewer */}
-      <Viewer3D project={project} currentStepId={currentStep.id} nodePositions={nodePositions} />
+      <Viewer3D project={project} currentStepId={currentStep.id} nodePositions={nodePositions} cameraMode={cameraMode} />
+
+      {/* Camera mode toggle */}
+      <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-4 py-2 rounded shadow-lg z-10">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold">Camera:</span>
+          <button
+            onClick={() => setCameraMode('auto')}
+            className={`px-3 py-1 rounded text-sm ${
+              cameraMode === 'auto'
+                ? 'bg-blue-500 hover:bg-blue-600'
+                : 'bg-gray-600 hover:bg-gray-500'
+            }`}
+          >
+            Auto
+          </button>
+          <button
+            onClick={() => setCameraMode('free')}
+            className={`px-3 py-1 rounded text-sm ${
+              cameraMode === 'free'
+                ? 'bg-blue-500 hover:bg-blue-600'
+                : 'bg-gray-600 hover:bg-gray-500'
+            }`}
+          >
+            Free
+          </button>
+        </div>
+      </div>
 
       {/* Exit button */}
       <button
