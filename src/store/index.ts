@@ -13,6 +13,9 @@ interface AppStore {
   isPreviewMode: boolean;
   currentPreviewStepIndex: number;
   
+  // Camera mode
+  cameraMode: 'auto' | 'free';
+  
   // Node positions for React Flow
   nodePositions: Record<string, { x: number; y: number }>;
   
@@ -26,6 +29,7 @@ interface AppStore {
   updateNodePosition: (id: string, position: { x: number; y: number }) => void;
   setPreviewMode: (isPreview: boolean) => void;
   setCurrentPreviewStepIndex: (index: number) => void;
+  setCameraMode: (mode: 'auto' | 'free') => void;
   saveToLocalStorage: () => void;
   loadFromLocalStorage: () => void;
 }
@@ -37,6 +41,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   selectedStepId: null,
   isPreviewMode: false,
   currentPreviewStepIndex: 0,
+  cameraMode: 'auto',
   nodePositions: {},
 
   setProject: (project) => {
@@ -132,6 +137,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   setCurrentPreviewStepIndex: (index) => set({ currentPreviewStepIndex: index }),
+
+  setCameraMode: (mode) => set({ cameraMode: mode }),
 
   saveToLocalStorage: () => {
     const { project, nodePositions } = get();

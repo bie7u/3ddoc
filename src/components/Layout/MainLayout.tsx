@@ -14,7 +14,9 @@ export const MainLayout = () => {
     setPreviewMode, 
     setProject,
     loadFromLocalStorage,
-    nodePositions
+    nodePositions,
+    cameraMode,
+    setCameraMode
   } = useAppStore();
 
   // Load project on mount
@@ -31,6 +33,10 @@ export const MainLayout = () => {
 
   const handleTogglePreview = () => {
     setPreviewMode(!isPreviewMode);
+  };
+
+  const handleToggleCameraMode = () => {
+    setCameraMode(cameraMode === 'auto' ? 'free' : 'auto');
   };
 
   const handleLoadSample = () => {
@@ -61,6 +67,16 @@ export const MainLayout = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleToggleCameraMode}
+            className={`px-4 py-2 rounded transition text-sm ${
+              cameraMode === 'free' 
+                ? 'bg-green-500 hover:bg-green-600' 
+                : 'bg-gray-600 hover:bg-gray-700'
+            }`}
+          >
+            {cameraMode === 'free' ? '📷 Free Camera' : '📷 Auto Camera'}
+          </button>
           <button
             onClick={handleLoadSample}
             className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-700 transition text-sm"
@@ -93,7 +109,7 @@ export const MainLayout = () => {
         {/* Center Panel - 3D Viewer (reduced) */}
         <div className="w-1/3 relative">
           <div className="h-full">
-            <Viewer3D project={project} currentStepId={selectedStepId} nodePositions={nodePositions} />
+            <Viewer3D project={project} currentStepId={selectedStepId} nodePositions={nodePositions} cameraMode={cameraMode} />
           </div>
           {!selectedStepId && project && project.steps.length > 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

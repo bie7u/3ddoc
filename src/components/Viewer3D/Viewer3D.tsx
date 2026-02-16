@@ -392,10 +392,11 @@ interface CameraControllerProps {
   project: ProjectData;
   currentStepId: string | null;
   nodePositions: Record<string, { x: number; y: number }>;
+  cameraMode: 'auto' | 'free';
 }
 
 // Component to smoothly transition camera to focus on current step
-const CameraController = ({ project, currentStepId, nodePositions }: CameraControllerProps) => {
+const CameraController = ({ project, currentStepId, nodePositions, cameraMode }: CameraControllerProps) => {
   const { camera } = useThree();
   const targetPos = useRef(new THREE.Vector3());
   const targetLookAt = useRef(new THREE.Vector3());
@@ -438,6 +439,9 @@ const CameraController = ({ project, currentStepId, nodePositions }: CameraContr
   }, [currentStepId, project, layout]);
 
   useFrame(() => {
+    // Skip camera animation in free mode
+    if (cameraMode === 'free') return;
+    
     // Smooth camera movement
     camera.position.lerp(targetPos.current, 0.05);
     
@@ -457,9 +461,10 @@ interface Viewer3DProps {
   project: ProjectData | null;
   currentStepId: string | null;
   nodePositions?: Record<string, { x: number; y: number }>;
+  cameraMode?: 'auto' | 'free';
 }
 
-export const Viewer3D = ({ project, currentStepId, nodePositions = {} }: Viewer3DProps) => {
+export const Viewer3D = ({ project, currentStepId, nodePositions = {}, cameraMode = 'auto' }: Viewer3DProps) => {
   const currentStep = project?.steps.find(s => s.id === currentStepId);
   const [selectedConnectionDesc, setSelectedConnectionDesc] = useState<string | null>(null);
   
@@ -476,6 +481,7 @@ export const Viewer3D = ({ project, currentStepId, nodePositions = {} }: Viewer3
             project={project}
             currentStepId={currentStepId}
             nodePositions={nodePositions}
+            cameraMode={cameraMode}
           />
         )}
         
