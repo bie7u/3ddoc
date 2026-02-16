@@ -18,7 +18,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useAppStore } from '../../store';
-import type { InstructionStep, ConnectionData, ConnectionStyle } from '../../types';
+import type { InstructionStep, ConnectionData, ConnectionStyle, ShapeType } from '../../types';
 
 // Custom node component
 const StepNode = ({ data, selected }: NodeProps<InstructionStep>) => {
@@ -47,24 +47,24 @@ const StepNode = ({ data, selected }: NodeProps<InstructionStep>) => {
 // Connection edit dialog component
 interface ConnectionEditDialogProps {
   description: string;
-  showCube: boolean;
-  onSave: (description: string, showCube: boolean) => void;
+  shapeType?: ShapeType;
+  onSave: (description: string, shapeType?: ShapeType) => void;
   onCancel: () => void;
   position: { x: number; y: number };
 }
 
 const ConnectionEditDialog = ({ 
   description, 
-  showCube, 
+  shapeType, 
   onSave, 
   onCancel,
   position 
 }: ConnectionEditDialogProps) => {
   const [tempDescription, setTempDescription] = useState(description);
-  const [tempShowCube, setTempShowCube] = useState(showCube);
+  const [tempShapeType, setTempShapeType] = useState<ShapeType | undefined>(shapeType);
   
   const handleSave = () => {
-    onSave(tempDescription, tempShowCube);
+    onSave(tempDescription, tempShapeType);
   };
   
   return (
@@ -92,15 +92,20 @@ const ConnectionEditDialog = ({
       </div>
       
       <div className="mb-3">
-        <label className="flex items-center text-xs">
-          <input
-            type="checkbox"
-            checked={tempShowCube}
-            onChange={(e) => setTempShowCube(e.target.checked)}
-            className="mr-2"
-          />
-          Show cube above connection
+        <label className="block text-xs font-medium text-gray-700 mb-1">
+          Shape Marker
         </label>
+        <select
+          value={tempShapeType || ''}
+          onChange={(e) => setTempShapeType(e.target.value ? (e.target.value as ShapeType) : undefined)}
+          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">None</option>
+          <option value="cube">Cube</option>
+          <option value="sphere">Sphere</option>
+          <option value="cylinder">Cylinder</option>
+          <option value="cone">Cone</option>
+        </select>
       </div>
       
       <div className="flex gap-2 justify-end">
@@ -130,7 +135,7 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
   
   const currentStyle = data?.style || 'standard';
   const currentDescription = data?.description || '';
-  const currentShowCube = data?.showCube || false;
+  const currentShapeType = data?.shapeType;
   
   const styles: { value: ConnectionStyle; label: string; color: string }[] = [
     { value: 'standard', label: 'Standard', color: '#4b5563' },
@@ -152,12 +157,12 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
     setShowStyleMenu(false);
   };
   
-  const handleDescriptionChange = (description: string, showCube: boolean) => {
+  const handleDescriptionChange = (description: string, shapeType?: ShapeType) => {
     if (!project) return;
     
     const updatedConnections = project.connections.map(conn => 
       conn.id === id 
-        ? { ...conn, data: { ...conn.data, description, showCube } }
+        ? { ...conn, data: { ...conn.data, description, shapeType } }
         : conn
     );
     
@@ -245,7 +250,7 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<
         {showEditDialog && (
           <ConnectionEditDialog
             description={currentDescription}
-            showCube={currentShowCube}
+            shapeType={currentShapeType}
             onSave={handleDescriptionChange}
             onCancel={() => setShowEditDialog(false)}
             position={{ x: labelX, y: labelY }}
