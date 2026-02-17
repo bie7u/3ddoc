@@ -1,10 +1,36 @@
-import { useRef, useEffect, useMemo, Suspense, useState } from 'react';
+import { useRef, useEffect, useMemo, Suspense, useState, Component, type ReactNode } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import type { InstructionStep, ConnectionStyle, ShapeType } from '../../types';
 import type { ProjectData } from '../../types';
 import { calculateCreatorBasedLayout } from '../../utils/layoutCalculator';
+
+// Error Boundary for catching errors in 3D components
+class ModelErrorBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; fallback: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('Model loading error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 interface ConnectionWithIndices {
   sourceIndex: number;
@@ -31,6 +57,21 @@ const ModelLoadingFallback = () => (
       emissive="#444444"
       emissiveIntensity={0.5}
       wireframe={true}
+    />
+  </mesh>
+);
+
+// Fallback component shown when model fails to load
+const ModelErrorFallback = () => (
+  <mesh castShadow>
+    <boxGeometry args={[2, 2, 2]} />
+    <meshStandardMaterial 
+      color="#ff4444"
+      emissive="#ff0000"
+      emissiveIntensity={0.3}
+      wireframe={false}
+      opacity={0.7}
+      transparent={true}
     />
   </mesh>
 );
@@ -98,15 +139,17 @@ const Shape3D = ({ shapeType = 'cube', size = 2, color, emissive = '#000000', em
   // If custom model URL is provided and shapeType is 'custom', render the custom model
   if (shapeType === 'custom' && customModelUrl) {
     return (
-      <Suspense fallback={<ModelLoadingFallback />}>
-        <CustomModel 
-          url={customModelUrl}
-          color={color}
-          emissive={emissive}
-          emissiveIntensity={emissiveIntensity}
-          scale={modelScale}
-        />
-      </Suspense>
+      <ModelErrorBoundary fallback={<ModelErrorFallback />}>
+        <Suspense fallback={<ModelLoadingFallback />}>
+          <CustomModel 
+            url={customModelUrl}
+            color={color}
+            emissive={emissive}
+            emissiveIntensity={emissiveIntensity}
+            scale={modelScale}
+          />
+        </Suspense>
+      </ModelErrorBoundary>
     );
   }
   
