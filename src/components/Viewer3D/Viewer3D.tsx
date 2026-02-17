@@ -149,18 +149,13 @@ const CustomModelRenderer = ({ url, color, emissive = '#000000', emissiveIntensi
     });
   }, [clonedScene, color, emissive, emissiveIntensity]);
   
-  // Apply scale and center the model to match primitive shapes behavior
+  // Apply scale to the model (centering disabled to preserve user positioning)
   useEffect(() => {
     clonedScene.scale.set(scale, scale, scale);
     
-    // Center the model by calculating its bounding box
-    // This calculation should be deterministic for the same model and scale
-    const box = new THREE.Box3().setFromObject(clonedScene);
-    const center = box.getCenter(new THREE.Vector3());
-    
-    // Offset the model so it's centered at the origin
-    // This makes it behave like primitive shapes (cube, sphere, etc.)
-    clonedScene.position.set(-center.x, -center.y, -center.z);
+    // Note: Centering is disabled because it can cause position shifts when models are reloaded
+    // Users can position models manually in the scene
+    // If centering is needed, it should be done once and the offset stored in the step data
   }, [clonedScene, scale]);
   
   return <primitive object={clonedScene} />;
