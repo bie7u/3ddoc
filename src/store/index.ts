@@ -2,6 +2,12 @@ import { create } from 'zustand';
 import type { Edge } from 'reactflow';
 import type { InstructionStep, ProjectData, ConnectionData } from '../types';
 
+export interface SavedProject {
+  project: ProjectData;
+  nodePositions: Record<string, { x: number; y: number }>;
+  lastModified: number;
+}
+
 interface AppStore {
   // Project data
   project: ProjectData | null;
@@ -32,9 +38,13 @@ interface AppStore {
   setCameraMode: (mode: 'auto' | 'free') => void;
   saveToLocalStorage: () => void;
   loadFromLocalStorage: () => void;
+  getAllProjects: () => SavedProject[];
+  deleteProject: (projectId: string) => void;
+  createNewProject: (projectName: string) => ProjectData;
 }
 
 const STORAGE_KEY = '3ddoc-project';
+const PROJECTS_KEY = '3ddoc-projects';
 
 export const useAppStore = create<AppStore>((set, get) => ({
   project: null,
@@ -145,6 +155,23 @@ export const useAppStore = create<AppStore>((set, get) => ({
     if (project) {
       const dataToSave = { project, nodePositions };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+      
+      // Also save to the projects list
+      const projects = get().getAllProjects();
+      const existingIndex = projects.findIndex(p => p.project.id === project.id);
+      const savedProject: SavedProject = {
+        project,
+        nodePositions,
+        lastModified: Date.now(),
+      };
+      
+      if (existingIndex >= 0) {
+        projects[existingIndex] = savedProject;
+      } else {
+        projects.push(savedProject);
+      }
+      
+      localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
     }
   },
 
@@ -164,5 +191,43 @@ export const useAppStore = create<AppStore>((set, get) => ({
         console.error('Failed to load project from localStorage', error);
       }
     }
+  },
+
+  getAllProjects: () => {
+    const stored = localStorage.getItem(PROJECTS_KEY);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (error) {
+        console.error('Failed to load projects list', error);
+        return [];
+      }
+    }
+    return [];
+  },
+
+  deleteProject: (projectId: string) => {
+    const projects = get().getAllProjects();
+    const filtered = projects.filter(p => p.project.id !== projectId);
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(filtered));
+    
+    // If the current project was deleted, clear it
+    const currentProject = get().project;
+    if (currentProject && currentProject.id === projectId) {
+      set({ project: null, nodePositions: {}, selectedStepId: null });
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  },
+
+  createNewProject: (projectName: string) => {
+    const newProject: ProjectData = {
+      id: `project-${crypto.randomUUID()}`,
+      name: projectName,
+      steps: [],
+      connections: [],
+    };
+    set({ project: newProject, nodePositions: {}, selectedStepId: null });
+    get().saveToLocalStorage();
+    return newProject;
   },
 }));
