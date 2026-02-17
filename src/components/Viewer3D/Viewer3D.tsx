@@ -78,6 +78,45 @@ const ModelErrorFallback = () => (
 
 // Component for loading custom GLTF/GLB models
 const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0, scale = 1 }: CustomModelProps) => {
+  // Convert data URL to blob URL for useGLTF compatibility
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  
+  useEffect(() => {
+    // If it's a data URL, convert it to a blob URL
+    if (url.startsWith('data:')) {
+      fetch(url)
+        .then(res => res.blob())
+        .then(blob => {
+          const newBlobUrl = URL.createObjectURL(blob);
+          setBlobUrl(newBlobUrl);
+          return newBlobUrl;
+        })
+        .catch(error => {
+          console.error('Failed to convert data URL to blob:', error);
+        });
+      
+      // Cleanup function to revoke blob URL
+      return () => {
+        if (blobUrl) {
+          URL.revokeObjectURL(blobUrl);
+        }
+      };
+    } else {
+      // Regular URL, use as-is
+      setBlobUrl(url);
+    }
+  }, [url]);
+  
+  // Wait for blob URL to be ready
+  if (!blobUrl) {
+    return <ModelLoadingFallback />;
+  }
+  
+  return <CustomModelRenderer url={blobUrl} color={color} emissive={emissive} emissiveIntensity={emissiveIntensity} scale={scale} />;
+};
+
+// Actual renderer component that uses useGLTF
+const CustomModelRenderer = ({ url, color, emissive = '#000000', emissiveIntensity = 0, scale = 1 }: CustomModelProps) => {
   // useGLTF handles loading and caching of GLTF models
   // It throws a promise during loading (Suspense) and an error on failure
   const { scene } = useGLTF(url);

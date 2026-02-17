@@ -183,15 +183,24 @@ export const StepProperties = () => {
                           return;
                         }
                         
-                        // Revoke previous blob URL if it exists
-                        if (blobUrlRef.current) {
-                          URL.revokeObjectURL(blobUrlRef.current);
-                        }
-                        // Create new blob URL and store reference
-                        const url = URL.createObjectURL(file);
-                        blobUrlRef.current = url;
-                        uploadedFileNameRef.current = file.name;
-                        handleInputChange('customModelUrl', url);
+                        // Convert file to data URL so it persists after page refresh
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const dataUrl = event.target?.result as string;
+                          if (dataUrl) {
+                            // Revoke previous blob URL if it exists
+                            if (blobUrlRef.current) {
+                              URL.revokeObjectURL(blobUrlRef.current);
+                              blobUrlRef.current = null;
+                            }
+                            uploadedFileNameRef.current = file.name;
+                            handleInputChange('customModelUrl', dataUrl);
+                          }
+                        };
+                        reader.onerror = () => {
+                          alert('Failed to read file. Please try again.');
+                        };
+                        reader.readAsDataURL(file);
                       } else {
                         // File selection was cancelled - clear if a blob URL was set
                         if (blobUrlRef.current) {
@@ -230,7 +239,7 @@ export const StepProperties = () => {
                   <input
                     id="model-url-input"
                     type="text"
-                    value={formData.customModelUrl?.startsWith('blob:') ? '' : (formData.customModelUrl || '')}
+                    value={formData.customModelUrl?.startsWith('blob:') || formData.customModelUrl?.startsWith('data:') ? '' : (formData.customModelUrl || '')}
                     onChange={(e) => {
                       // Revoke blob URL if switching from file to URL
                       if (blobUrlRef.current) {
