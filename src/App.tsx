@@ -43,7 +43,7 @@ function App() {
     );
   }
 
-  return <MainLayout onBackToProjectList={handleBackToProjectList} />;
+  return <MainLayout onBackToProjectList={handleBackToProjectList} useSampleProjectFallback={false} />;
 }
 
 export default App;

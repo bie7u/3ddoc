@@ -221,7 +221,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   createNewProject: (projectName: string) => {
     const newProject: ProjectData = {
-      id: `project-${Date.now()}`,
+      id: `project-${crypto.randomUUID()}`,
       name: projectName,
       steps: [],
       connections: [],

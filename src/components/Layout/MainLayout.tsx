@@ -8,9 +8,10 @@ import { sampleProject } from '../../utils/sampleData';
 
 interface MainLayoutProps {
   onBackToProjectList?: () => void;
+  useSampleProjectFallback?: boolean;
 }
 
-export const MainLayout = ({ onBackToProjectList }: MainLayoutProps) => {
+export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = true }: MainLayoutProps) => {
   const { 
     project, 
     selectedStepId, 
@@ -28,12 +29,12 @@ export const MainLayout = ({ onBackToProjectList }: MainLayoutProps) => {
     loadFromLocalStorage();
   }, [loadFromLocalStorage]);
 
-  // Set sample project if none loaded (only if no callback provided)
+  // Set sample project if none loaded and fallback is enabled
   useEffect(() => {
-    if (!project && !onBackToProjectList) {
+    if (!project && useSampleProjectFallback) {
       setProject(sampleProject);
     }
-  }, [project, setProject, onBackToProjectList]);
+  }, [project, setProject, useSampleProjectFallback]);
 
   const handleTogglePreview = () => {
     setPreviewMode(!isPreviewMode);
