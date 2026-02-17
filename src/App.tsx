@@ -7,10 +7,11 @@ import { useAppStore, type SavedProject } from './store';
 function App() {
   const [showProjectList, setShowProjectList] = useState(true);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
-  const { setProject, createNewProject } = useAppStore();
+  const { setProject, createNewProject, setPreviewMode } = useAppStore();
 
   const handleSelectProject = (savedProject: SavedProject) => {
     setProject(savedProject.project);
+    setPreviewMode(true);
     setShowProjectList(false);
   };
 
