@@ -1,10 +1,36 @@
-import { useRef, useEffect, useMemo, useState } from 'react';
+import { useRef, useEffect, useMemo, Suspense, useState, Component, type ReactNode } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import type { InstructionStep, ConnectionStyle, ShapeType } from '../../types';
 import type { ProjectData } from '../../types';
 import { calculateCreatorBasedLayout } from '../../utils/layoutCalculator';
+
+// Error Boundary for catching errors in 3D components
+class ModelErrorBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; fallback: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Model loading error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 interface ConnectionWithIndices {
   sourceIndex: number;
@@ -14,16 +40,156 @@ interface ConnectionWithIndices {
   shapeType?: ShapeType;
 }
 
+interface CustomModelProps {
+  url: string;
+  color: string;
+  emissive?: string;
+  emissiveIntensity?: number;
+  scale?: number;
+}
+
+// Fallback component shown while model is loading
+const ModelLoadingFallback = () => (
+  <mesh castShadow>
+    <boxGeometry args={[2, 2, 2]} />
+    <meshStandardMaterial 
+      color="#888888"
+      emissive="#444444"
+      emissiveIntensity={0.5}
+      wireframe={true}
+    />
+  </mesh>
+);
+
+// Fallback component shown when model fails to load
+const ModelErrorFallback = () => (
+  <mesh castShadow>
+    <boxGeometry args={[2, 2, 2]} />
+    <meshStandardMaterial 
+      color="#ff4444"
+      emissive="#ff0000"
+      emissiveIntensity={0.3}
+      wireframe={false}
+      opacity={0.7}
+      transparent={true}
+    />
+  </mesh>
+);
+
+// Component for loading custom GLTF/GLB models
+const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0, scale = 1 }: CustomModelProps) => {
+  // Convert data URL to blob URL for useGLTF compatibility
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    // If it's a data URL, convert it to a blob URL
+    if (url.startsWith('data:')) {
+      fetch(url)
+        .then(res => res.blob())
+        .then(blob => {
+          const newBlobUrl = URL.createObjectURL(blob);
+          blobUrlRef.current = newBlobUrl;
+          setBlobUrl(newBlobUrl);
+        })
+        .catch(error => {
+          console.error('Failed to convert data URL to blob:', error);
+        });
+      
+      // Cleanup function to revoke blob URL
+      return () => {
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+          blobUrlRef.current = null;
+        }
+      };
+    } else {
+      // Regular URL, use as-is
+      setBlobUrl(url);
+    }
+  }, [url]);
+  
+  // Wait for blob URL to be ready
+  if (!blobUrl) {
+    return <ModelLoadingFallback />;
+  }
+  
+  return <CustomModelRenderer url={blobUrl} color={color} emissive={emissive} emissiveIntensity={emissiveIntensity} scale={scale} />;
+};
+
+// Actual renderer component that uses useGLTF
+const CustomModelRenderer = ({ url, color, emissive = '#000000', emissiveIntensity = 0, scale = 1 }: CustomModelProps) => {
+  // useGLTF handles loading and caching of GLTF models
+  // It throws a promise during loading (Suspense) and an error on failure
+  const { scene } = useGLTF(url);
+  
+  // Clone the scene to avoid modifying the cached version
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+  
+  // Apply material properties to all meshes in the model
+  useEffect(() => {
+    clonedScene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true;
+        if (child.material) {
+          // Create a new material - handle different material types
+          const oldMaterial = child.material as THREE.Material;
+          const metalness = (oldMaterial as any).metalness ?? 0.5;
+          const roughness = (oldMaterial as any).roughness ?? 0.5;
+          
+          child.material = new THREE.MeshStandardMaterial({
+            color: color,
+            emissive: emissive,
+            emissiveIntensity: emissiveIntensity,
+            metalness: metalness,
+            roughness: roughness,
+          });
+        }
+      }
+    });
+  }, [clonedScene, color, emissive, emissiveIntensity]);
+  
+  // Apply scale to the model (centering disabled to preserve user positioning)
+  useEffect(() => {
+    clonedScene.scale.set(scale, scale, scale);
+    
+    // Note: Centering is disabled because it can cause position shifts when models are reloaded
+    // Users can position models manually in the scene
+    // If centering is needed, it should be done once and the offset stored in the step data
+  }, [clonedScene, scale]);
+  
+  return <primitive object={clonedScene} />;
+};
+
 interface Shape3DProps {
   shapeType?: ShapeType;
   size?: number;
   color: string;
   emissive?: string;
   emissiveIntensity?: number;
+  customModelUrl?: string;
+  modelScale?: number;
 }
 
 // Reusable 3D shape component
-const Shape3D = ({ shapeType = 'cube', size = 2, color, emissive = '#000000', emissiveIntensity = 0 }: Shape3DProps) => {
+const Shape3D = ({ shapeType = 'cube', size = 2, color, emissive = '#000000', emissiveIntensity = 0, customModelUrl, modelScale = 1 }: Shape3DProps) => {
+  // If custom model URL is provided and shapeType is 'custom', render the custom model
+  if (shapeType === 'custom' && customModelUrl) {
+    return (
+      <ModelErrorBoundary fallback={<ModelErrorFallback />}>
+        <Suspense fallback={<ModelLoadingFallback />}>
+          <CustomModel 
+            url={customModelUrl}
+            color={color}
+            emissive={emissive}
+            emissiveIntensity={emissiveIntensity}
+            scale={modelScale}
+          />
+        </Suspense>
+      </ModelErrorBoundary>
+    );
+  }
+  
   const renderGeometry = () => {
     switch (shapeType) {
       case 'sphere':
@@ -103,11 +269,13 @@ const StepCube = ({ step, position, isActive }: StepCubeProps) => {
           color={color}
           emissive={isActive ? color : '#000000'}
           emissiveIntensity={isActive ? 0.3 : 0}
+          customModelUrl={step.customModelUrl}
+          modelScale={step.modelScale}
         />
       </group>
       
-      {/* Glowing outline for active step */}
-      {isActive && (
+      {/* Glowing outline for active step - only for primitive shapes, not custom models */}
+      {isActive && shapeType !== 'custom' && (
         <mesh ref={glowRef}>
           {renderGlowGeometry()}
           <meshBasicMaterial 

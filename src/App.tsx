@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MainLayout } from './components/Layout';
 import { ProjectList } from './components/ProjectList';
 import { NewProjectDialog } from './components/ProjectList/NewProjectDialog';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAppStore, type SavedProject } from './store';
 
 function App() {
@@ -35,16 +36,20 @@ function App() {
 
   if (showProjectList) {
     return (
-      <>
+      <ErrorBoundary>
         <ProjectList onSelectProject={handleSelectProject} onCreateNew={handleCreateNew} />
         {showNewProjectDialog && (
           <NewProjectDialog onConfirm={handleConfirmNewProject} onCancel={handleCancelNewProject} />
         )}
-      </>
+      </ErrorBoundary>
     );
   }
 
-  return <MainLayout onBackToProjectList={handleBackToProjectList} useSampleProjectFallback={false} />;
+  return (
+    <ErrorBoundary>
+      <MainLayout onBackToProjectList={handleBackToProjectList} useSampleProjectFallback={false} />
+    </ErrorBoundary>
+  );
 }
 
 export default App;

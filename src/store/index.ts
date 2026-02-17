@@ -182,7 +182,24 @@ export const useAppStore = create<AppStore>((set, get) => ({
         const data = JSON.parse(stored);
         // Handle both old and new format
         if (data.project) {
-          set({ project: data.project, nodePositions: data.nodePositions || {} });
+          // Clean up invalid blob URLs from steps (but keep data URLs which persist)
+          const cleanedProject = {
+            ...data.project,
+            steps: data.project.steps.map((step: any) => {
+              // If step has a blob URL that's no longer valid, clear it
+              // Data URLs (starting with "data:") are valid and should be kept
+              if (step.customModelUrl && step.customModelUrl.startsWith('blob:')) {
+                console.warn('Removed invalid blob URL from step:', step.id);
+                return {
+                  ...step,
+                  customModelUrl: undefined,
+                  shapeType: 'cube' // Reset to cube if model URL was invalid
+                };
+              }
+              return step;
+            })
+          };
+          set({ project: cleanedProject, nodePositions: data.nodePositions || {} });
         } else {
           // Old format - just the project
           set({ project: data, nodePositions: {} });
