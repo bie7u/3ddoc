@@ -9,6 +9,7 @@ export const StepProperties = () => {
   
   // Track blob URLs for cleanup
   const blobUrlRef = useRef<string | null>(null);
+  const uploadedFileNameRef = useRef<string | null>(null);
   
   const [formData, setFormData] = useState<Partial<InstructionStep>>({
     title: '',
@@ -24,6 +25,7 @@ export const StepProperties = () => {
       if (blobUrlRef.current) {
         URL.revokeObjectURL(blobUrlRef.current);
         blobUrlRef.current = null;
+        uploadedFileNameRef.current = null;
       }
     };
   }, [selectedStepId]);
@@ -163,6 +165,22 @@ export const StepProperties = () => {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
+                        // Validate file size (max 50MB)
+                        const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+                        if (file.size > maxSize) {
+                          alert('File size exceeds 50MB limit. Please choose a smaller file.');
+                          e.target.value = ''; // Clear the input
+                          return;
+                        }
+                        
+                        // Validate MIME type
+                        const validTypes = ['model/gltf+json', 'model/gltf-binary', 'model/gltf.binary', 'application/octet-stream'];
+                        if (file.type && !validTypes.includes(file.type) && !file.name.match(/\.(gltf|glb)$/i)) {
+                          alert('Invalid file type. Please select a GLTF (.gltf) or GLB (.glb) file.');
+                          e.target.value = ''; // Clear the input
+                          return;
+                        }
+                        
                         // Revoke previous blob URL if it exists
                         if (blobUrlRef.current) {
                           URL.revokeObjectURL(blobUrlRef.current);
@@ -170,20 +188,27 @@ export const StepProperties = () => {
                         // Create new blob URL and store reference
                         const url = URL.createObjectURL(file);
                         blobUrlRef.current = url;
+                        uploadedFileNameRef.current = file.name;
                         handleInputChange('customModelUrl', url);
                       } else {
                         // File selection was cancelled - clear if a blob URL was set
                         if (blobUrlRef.current) {
                           URL.revokeObjectURL(blobUrlRef.current);
                           blobUrlRef.current = null;
+                          uploadedFileNameRef.current = null;
                           handleInputChange('customModelUrl', '');
                         }
                       }
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  {uploadedFileNameRef.current && (
+                    <p className="mt-1 text-sm text-green-600 font-medium">
+                      ✓ Uploaded: {uploadedFileNameRef.current}
+                    </p>
+                  )}
                   <p className="mt-1 text-xs text-gray-500">
-                    Select a GLTF (.gltf) or GLB (.glb) 3D model file from your computer
+                    Select a GLTF (.gltf) or GLB (.glb) 3D model file (max 50MB)
                   </p>
                 </div>
                 
@@ -209,6 +234,7 @@ export const StepProperties = () => {
                       if (blobUrlRef.current) {
                         URL.revokeObjectURL(blobUrlRef.current);
                         blobUrlRef.current = null;
+                        uploadedFileNameRef.current = null;
                       }
                       handleInputChange('customModelUrl', e.target.value);
                     }}
