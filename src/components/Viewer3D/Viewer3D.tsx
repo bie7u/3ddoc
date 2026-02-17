@@ -67,9 +67,17 @@ const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0, 
     });
   }, [clonedScene, color, emissive, emissiveIntensity]);
   
-  // Apply scale to the cloned scene
+  // Apply scale and center the model to match primitive shapes behavior
   useEffect(() => {
     clonedScene.scale.set(scale, scale, scale);
+    
+    // Center the model by calculating its bounding box
+    const box = new THREE.Box3().setFromObject(clonedScene);
+    const center = box.getCenter(new THREE.Vector3());
+    
+    // Offset the model so it's centered at the origin
+    // This makes it behave like primitive shapes (cube, sphere, etc.)
+    clonedScene.position.set(-center.x, -center.y, -center.z);
   }, [clonedScene, scale]);
   
   return <primitive object={clonedScene} />;
