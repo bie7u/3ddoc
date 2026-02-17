@@ -80,6 +80,7 @@ const ModelErrorFallback = () => (
 const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0, scale = 1 }: CustomModelProps) => {
   // Convert data URL to blob URL for useGLTF compatibility
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
   
   useEffect(() => {
     // If it's a data URL, convert it to a blob URL
@@ -88,8 +89,8 @@ const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0, 
         .then(res => res.blob())
         .then(blob => {
           const newBlobUrl = URL.createObjectURL(blob);
+          blobUrlRef.current = newBlobUrl;
           setBlobUrl(newBlobUrl);
-          return newBlobUrl;
         })
         .catch(error => {
           console.error('Failed to convert data URL to blob:', error);
@@ -97,8 +98,9 @@ const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0, 
       
       // Cleanup function to revoke blob URL
       return () => {
-        if (blobUrl) {
-          URL.revokeObjectURL(blobUrl);
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+          blobUrlRef.current = null;
         }
       };
     } else {
