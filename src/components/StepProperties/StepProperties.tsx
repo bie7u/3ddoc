@@ -17,6 +17,7 @@ export const StepProperties = () => {
     highlightColor: '#4299e1',
     shapeType: 'cube',
     customModelUrl: '',
+    modelScale: 1,
   });
 
   // Cleanup blob URLs on unmount or when step changes
@@ -38,6 +39,7 @@ export const StepProperties = () => {
         highlightColor: selectedStep.highlightColor || '#4299e1',
         shapeType: selectedStep.shapeType || 'cube',
         customModelUrl: selectedStep.customModelUrl || '',
+        modelScale: selectedStep.modelScale || 1,
       });
     }
   }, [selectedStep]);
@@ -245,6 +247,38 @@ export const StepProperties = () => {
                     Or enter a URL to a GLTF/GLB model file
                   </p>
                 </div>
+              </div>
+            )}
+
+            {formData.shapeType === 'custom' && (
+              <div>
+                <label htmlFor="model-scale" className="block text-sm font-medium text-gray-700 mb-1">
+                  Model Scale
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    id="model-scale"
+                    type="range"
+                    min="0.1"
+                    max="5"
+                    step="0.1"
+                    value={formData.modelScale || 1}
+                    onChange={(e) => handleInputChange('modelScale', parseFloat(e.target.value))}
+                    className="flex-1"
+                  />
+                  <input
+                    type="number"
+                    min="0.1"
+                    max="5"
+                    step="0.1"
+                    value={formData.modelScale || 1}
+                    onChange={(e) => handleInputChange('modelScale', parseFloat(e.target.value))}
+                    className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Adjust the size of the 3D model (0.1 - 5.0)
+                </p>
               </div>
             )}
 

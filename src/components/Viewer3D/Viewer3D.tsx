@@ -19,6 +19,7 @@ interface CustomModelProps {
   color: string;
   emissive?: string;
   emissiveIntensity?: number;
+  scale?: number;
 }
 
 // Fallback component shown while model is loading
@@ -35,7 +36,7 @@ const ModelLoadingFallback = () => (
 );
 
 // Component for loading custom GLTF/GLB models
-const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0 }: CustomModelProps) => {
+const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0, scale = 1 }: CustomModelProps) => {
   // useGLTF handles loading and caching of GLTF models
   // It throws a promise during loading (Suspense) and an error on failure
   const { scene } = useGLTF(url);
@@ -66,6 +67,11 @@ const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0 }
     });
   }, [clonedScene, color, emissive, emissiveIntensity]);
   
+  // Apply scale to the cloned scene
+  useEffect(() => {
+    clonedScene.scale.set(scale, scale, scale);
+  }, [clonedScene, scale]);
+  
   return <primitive object={clonedScene} />;
 };
 
@@ -76,10 +82,11 @@ interface Shape3DProps {
   emissive?: string;
   emissiveIntensity?: number;
   customModelUrl?: string;
+  modelScale?: number;
 }
 
 // Reusable 3D shape component
-const Shape3D = ({ shapeType = 'cube', size = 2, color, emissive = '#000000', emissiveIntensity = 0, customModelUrl }: Shape3DProps) => {
+const Shape3D = ({ shapeType = 'cube', size = 2, color, emissive = '#000000', emissiveIntensity = 0, customModelUrl, modelScale = 1 }: Shape3DProps) => {
   // If custom model URL is provided and shapeType is 'custom', render the custom model
   if (shapeType === 'custom' && customModelUrl) {
     return (
@@ -89,6 +96,7 @@ const Shape3D = ({ shapeType = 'cube', size = 2, color, emissive = '#000000', em
           color={color}
           emissive={emissive}
           emissiveIntensity={emissiveIntensity}
+          scale={modelScale}
         />
       </Suspense>
     );
@@ -174,11 +182,12 @@ const StepCube = ({ step, position, isActive }: StepCubeProps) => {
           emissive={isActive ? color : '#000000'}
           emissiveIntensity={isActive ? 0.3 : 0}
           customModelUrl={step.customModelUrl}
+          modelScale={step.modelScale}
         />
       </group>
       
-      {/* Glowing outline for active step */}
-      {isActive && (
+      {/* Glowing outline for active step - only for primitive shapes, not custom models */}
+      {isActive && shapeType !== 'custom' && (
         <mesh ref={glowRef}>
           {renderGlowGeometry()}
           <meshBasicMaterial 

@@ -35,6 +35,7 @@ export interface InstructionStep {
   highlightColor?: string;
   shapeType?: ShapeType;
   customModelUrl?: string;
+  modelScale?: number;
 }
 
 export interface ProjectData {
