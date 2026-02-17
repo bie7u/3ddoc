@@ -21,14 +21,15 @@ interface CustomModelProps {
   emissiveIntensity?: number;
 }
 
-// Fallback component for failed model loads
-const ModelLoadError = () => (
+// Fallback component shown while model is loading
+const ModelLoadingFallback = () => (
   <mesh castShadow>
     <boxGeometry args={[2, 2, 2]} />
     <meshStandardMaterial 
-      color="#ff0000"
-      emissive="#ff0000"
-      emissiveIntensity={0.3}
+      color="#888888"
+      emissive="#444444"
+      emissiveIntensity={0.5}
+      wireframe={true}
     />
   </mesh>
 );
@@ -48,14 +49,17 @@ const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0 }
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         if (child.material) {
-          // Create a new material based on the existing one
-          const material = child.material as THREE.MeshStandardMaterial;
+          // Create a new material - handle different material types
+          const oldMaterial = child.material as THREE.Material;
+          const metalness = (oldMaterial as any).metalness ?? 0.5;
+          const roughness = (oldMaterial as any).roughness ?? 0.5;
+          
           child.material = new THREE.MeshStandardMaterial({
             color: color,
             emissive: emissive,
             emissiveIntensity: emissiveIntensity,
-            metalness: material.metalness || 0.5,
-            roughness: material.roughness || 0.5,
+            metalness: metalness,
+            roughness: roughness,
           });
         }
       }
@@ -79,7 +83,7 @@ const Shape3D = ({ shapeType = 'cube', size = 2, color, emissive = '#000000', em
   // If custom model URL is provided and shapeType is 'custom', render the custom model
   if (shapeType === 'custom' && customModelUrl) {
     return (
-      <Suspense fallback={<ModelLoadError />}>
+      <Suspense fallback={<ModelLoadingFallback />}>
         <CustomModel 
           url={customModelUrl}
           color={color}
