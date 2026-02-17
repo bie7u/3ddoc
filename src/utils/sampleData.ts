@@ -44,7 +44,7 @@ export const sampleProject: ProjectData = {
       id: 'step-4',
       title: 'Custom Model Example',
       description: 'This step demonstrates custom 3D model loading. You can replace the URL with any GLTF or GLB model.',
-      modelPath: 'custom',
+      modelPath: 'box', // modelPath is kept for backward compatibility, actual model loaded via customModelUrl
       cameraPosition: { x: 2, y: 6, z: 4, targetX: 0, targetY: 0, targetZ: 0 },
       highlightColor: '#9f7aea',
       shapeType: 'custom',

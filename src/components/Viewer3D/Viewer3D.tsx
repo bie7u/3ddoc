@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo, useState } from 'react';
+import { useRef, useEffect, useMemo, Suspense, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -21,56 +21,48 @@ interface CustomModelProps {
   emissiveIntensity?: number;
 }
 
+// Fallback component for failed model loads
+const ModelLoadError = () => (
+  <mesh castShadow>
+    <boxGeometry args={[2, 2, 2]} />
+    <meshStandardMaterial 
+      color="#ff0000"
+      emissive="#ff0000"
+      emissiveIntensity={0.3}
+    />
+  </mesh>
+);
+
 // Component for loading custom GLTF/GLB models
 const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0 }: CustomModelProps) => {
-  const [loadError, setLoadError] = useState<string | null>(null);
+  // useGLTF handles loading and caching of GLTF models
+  // It throws a promise during loading (Suspense) and an error on failure
+  const { scene } = useGLTF(url);
   
-  try {
-    const { scene } = useGLTF(url);
-    
-    // Clone the scene to avoid modifying the cached version
-    const clonedScene = useMemo(() => scene.clone(), [scene]);
-    
-    // Apply material properties to all meshes in the model
-    useEffect(() => {
-      clonedScene.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          child.castShadow = true;
-          if (child.material) {
-            // Create a new material based on the existing one
-            const material = child.material as THREE.MeshStandardMaterial;
-            child.material = new THREE.MeshStandardMaterial({
-              color: color,
-              emissive: emissive,
-              emissiveIntensity: emissiveIntensity,
-              metalness: material.metalness || 0.5,
-              roughness: material.roughness || 0.5,
-            });
-          }
+  // Clone the scene to avoid modifying the cached version
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+  
+  // Apply material properties to all meshes in the model
+  useEffect(() => {
+    clonedScene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true;
+        if (child.material) {
+          // Create a new material based on the existing one
+          const material = child.material as THREE.MeshStandardMaterial;
+          child.material = new THREE.MeshStandardMaterial({
+            color: color,
+            emissive: emissive,
+            emissiveIntensity: emissiveIntensity,
+            metalness: material.metalness || 0.5,
+            roughness: material.roughness || 0.5,
+          });
         }
-      });
-    }, [clonedScene, color, emissive, emissiveIntensity]);
-    
-    return <primitive object={clonedScene} />;
-  } catch (err) {
-    if (loadError === null) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to load model';
-      setLoadError(errorMsg);
-      console.error('Error loading custom model:', err);
-    }
-    
-    // Fallback to a cube if model fails to load
-    return (
-      <mesh castShadow>
-        <boxGeometry args={[2, 2, 2]} />
-        <meshStandardMaterial 
-          color="#ff0000"
-          emissive="#ff0000"
-          emissiveIntensity={0.3}
-        />
-      </mesh>
-    );
-  }
+      }
+    });
+  }, [clonedScene, color, emissive, emissiveIntensity]);
+  
+  return <primitive object={clonedScene} />;
 };
 
 interface Shape3DProps {
@@ -87,12 +79,14 @@ const Shape3D = ({ shapeType = 'cube', size = 2, color, emissive = '#000000', em
   // If custom model URL is provided and shapeType is 'custom', render the custom model
   if (shapeType === 'custom' && customModelUrl) {
     return (
-      <CustomModel 
-        url={customModelUrl}
-        color={color}
-        emissive={emissive}
-        emissiveIntensity={emissiveIntensity}
-      />
+      <Suspense fallback={<ModelLoadError />}>
+        <CustomModel 
+          url={customModelUrl}
+          color={color}
+          emissive={emissive}
+          emissiveIntensity={emissiveIntensity}
+        />
+      </Suspense>
     );
   }
   
