@@ -42,11 +42,21 @@ export const sampleProject: ProjectData = {
     },
     {
       id: 'step-4',
+      title: 'Custom Model Example',
+      description: 'This step demonstrates custom 3D model loading. You can replace the URL with any GLTF or GLB model.',
+      modelPath: 'custom',
+      cameraPosition: { x: 2, y: 6, z: 4, targetX: 0, targetY: 0, targetZ: 0 },
+      highlightColor: '#9f7aea',
+      shapeType: 'custom',
+      customModelUrl: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb',
+    },
+    {
+      id: 'step-5',
       title: 'Final Check',
       description: 'Review the assembled product and ensure all parts are secure.',
       modelPath: 'box',
       cameraPosition: { x: 2, y: 6, z: 4, targetX: 0, targetY: 0, targetZ: 0 },
-      highlightColor: '#9f7aea',
+      highlightColor: '#e53e3e',
       shapeType: 'cube',
     },
   ],
@@ -57,7 +67,9 @@ export const sampleProject: ProjectData = {
     // Both parallel steps converge into step 3
     { id: 'e2a-3', source: 'step-2a', target: 'step-3', data: { style: 'neon', description: 'Connect frame parts to the assembly', shapeType: 'cube' } },
     { id: 'e2b-3', source: 'step-2b', target: 'step-3', data: { style: 'standard', description: 'Add fasteners to secure the assembly' } },
-    // Step 3 to final step
-    { id: 'e3-4', source: 'step-3', target: 'step-4', data: { style: 'glass', description: 'Proceed to final quality check', shapeType: 'cylinder' } },
+    // Step 3 to custom model example
+    { id: 'e3-4', source: 'step-3', target: 'step-4', data: { style: 'glass', description: 'View custom 3D model example', shapeType: 'cylinder' } },
+    // Custom model to final step
+    { id: 'e4-5', source: 'step-4', target: 'step-5', data: { style: 'glow', description: 'Proceed to final quality check' } },
   ],
 };
