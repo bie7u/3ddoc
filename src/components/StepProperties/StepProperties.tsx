@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAppStore } from '../../store';
 import type { InstructionStep, ShapeType } from '../../types';
 
@@ -7,6 +7,9 @@ export const StepProperties = () => {
   
   const selectedStep = project?.steps.find((step) => step.id === selectedStepId);
   
+  // Track blob URLs for cleanup
+  const blobUrlRef = useRef<string | null>(null);
+  
   const [formData, setFormData] = useState<Partial<InstructionStep>>({
     title: '',
     description: '',
@@ -14,6 +17,16 @@ export const StepProperties = () => {
     shapeType: 'cube',
     customModelUrl: '',
   });
+
+  // Cleanup blob URLs on unmount or when step changes
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+    };
+  }, [selectedStepId]);
 
   useEffect(() => {
     if (selectedStep) {
@@ -149,7 +162,13 @@ export const StepProperties = () => {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
+                        // Revoke previous blob URL if it exists
+                        if (blobUrlRef.current) {
+                          URL.revokeObjectURL(blobUrlRef.current);
+                        }
+                        // Create new blob URL and store reference
                         const url = URL.createObjectURL(file);
+                        blobUrlRef.current = url;
                         handleInputChange('customModelUrl', url);
                       }
                     }}
@@ -175,8 +194,15 @@ export const StepProperties = () => {
                   </label>
                   <input
                     type="text"
-                    value={formData.customModelUrl || ''}
-                    onChange={(e) => handleInputChange('customModelUrl', e.target.value)}
+                    value={formData.customModelUrl?.startsWith('blob:') ? '' : (formData.customModelUrl || '')}
+                    onChange={(e) => {
+                      // Revoke blob URL if switching from file to URL
+                      if (blobUrlRef.current) {
+                        URL.revokeObjectURL(blobUrlRef.current);
+                        blobUrlRef.current = null;
+                      }
+                      handleInputChange('customModelUrl', e.target.value);
+                    }}
                     placeholder="https://example.com/model.glb"
                     className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
