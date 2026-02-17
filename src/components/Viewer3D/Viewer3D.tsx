@@ -154,6 +154,7 @@ const CustomModelRenderer = ({ url, color, emissive = '#000000', emissiveIntensi
     clonedScene.scale.set(scale, scale, scale);
     
     // Center the model by calculating its bounding box
+    // This calculation should be deterministic for the same model and scale
     const box = new THREE.Box3().setFromObject(clonedScene);
     const center = box.getCenter(new THREE.Vector3());
     
