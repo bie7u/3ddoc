@@ -153,10 +153,11 @@ export const StepProperties = () => {
             {formData.shapeType === 'custom' && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="model-file-upload" className="block text-sm font-medium text-gray-700 mb-1">
                     Upload Model File
                   </label>
                   <input
+                    id="model-file-upload"
                     type="file"
                     accept=".gltf,.glb"
                     onChange={(e) => {
@@ -170,6 +171,13 @@ export const StepProperties = () => {
                         const url = URL.createObjectURL(file);
                         blobUrlRef.current = url;
                         handleInputChange('customModelUrl', url);
+                      } else {
+                        // File selection was cancelled - clear if a blob URL was set
+                        if (blobUrlRef.current) {
+                          URL.revokeObjectURL(blobUrlRef.current);
+                          blobUrlRef.current = null;
+                          handleInputChange('customModelUrl', '');
+                        }
                       }
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -189,10 +197,11 @@ export const StepProperties = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="model-url-input" className="block text-sm font-medium text-gray-700 mb-1">
                     Model URL
                   </label>
                   <input
+                    id="model-url-input"
                     type="text"
                     value={formData.customModelUrl?.startsWith('blob:') ? '' : (formData.customModelUrl || '')}
                     onChange={(e) => {
