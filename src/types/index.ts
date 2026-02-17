@@ -17,7 +17,7 @@ export interface Annotation {
 
 export type ConnectionStyle = 'standard' | 'glass' | 'glow' | 'neon';
 
-export type ShapeType = 'cube' | 'sphere' | 'cylinder' | 'cone';
+export type ShapeType = 'cube' | 'sphere' | 'cylinder' | 'cone' | 'custom';
 
 export interface ConnectionData {
   style?: ConnectionStyle;
@@ -34,6 +34,7 @@ export interface InstructionStep {
   annotations?: Annotation[];
   highlightColor?: string;
   shapeType?: ShapeType;
+  customModelUrl?: string;
 }
 
 export interface ProjectData {

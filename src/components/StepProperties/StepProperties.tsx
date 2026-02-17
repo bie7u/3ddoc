@@ -12,6 +12,7 @@ export const StepProperties = () => {
     description: '',
     highlightColor: '#4299e1',
     shapeType: 'cube',
+    customModelUrl: '',
   });
 
   useEffect(() => {
@@ -21,6 +22,7 @@ export const StepProperties = () => {
         description: selectedStep.description,
         highlightColor: selectedStep.highlightColor || '#4299e1',
         shapeType: selectedStep.shapeType || 'cube',
+        customModelUrl: selectedStep.customModelUrl || '',
       });
     }
   }, [selectedStep]);
@@ -131,8 +133,27 @@ export const StepProperties = () => {
                 <option value="sphere">Sphere</option>
                 <option value="cylinder">Cylinder</option>
                 <option value="cone">Cone</option>
+                <option value="custom">Custom Model</option>
               </select>
             </div>
+
+            {formData.shapeType === 'custom' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Model URL
+                </label>
+                <input
+                  type="text"
+                  value={formData.customModelUrl || ''}
+                  onChange={(e) => handleInputChange('customModelUrl', e.target.value)}
+                  placeholder="https://example.com/model.glb"
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter a URL to a GLTF (.gltf) or GLB (.glb) 3D model file
+                </p>
+              </div>
+            )}
 
             <div className="pt-4 space-y-2">
               <button

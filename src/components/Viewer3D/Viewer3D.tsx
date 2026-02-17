@@ -1,6 +1,6 @@
 import { useRef, useEffect, useMemo, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import type { InstructionStep, ConnectionStyle, ShapeType } from '../../types';
 import type { ProjectData } from '../../types';
@@ -14,16 +14,88 @@ interface ConnectionWithIndices {
   shapeType?: ShapeType;
 }
 
+interface CustomModelProps {
+  url: string;
+  color: string;
+  emissive?: string;
+  emissiveIntensity?: number;
+}
+
+// Component for loading custom GLTF/GLB models
+const CustomModel = ({ url, color, emissive = '#000000', emissiveIntensity = 0 }: CustomModelProps) => {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  
+  try {
+    const { scene } = useGLTF(url);
+    
+    // Clone the scene to avoid modifying the cached version
+    const clonedScene = useMemo(() => scene.clone(), [scene]);
+    
+    // Apply material properties to all meshes in the model
+    useEffect(() => {
+      clonedScene.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.castShadow = true;
+          if (child.material) {
+            // Create a new material based on the existing one
+            const material = child.material as THREE.MeshStandardMaterial;
+            child.material = new THREE.MeshStandardMaterial({
+              color: color,
+              emissive: emissive,
+              emissiveIntensity: emissiveIntensity,
+              metalness: material.metalness || 0.5,
+              roughness: material.roughness || 0.5,
+            });
+          }
+        }
+      });
+    }, [clonedScene, color, emissive, emissiveIntensity]);
+    
+    return <primitive object={clonedScene} />;
+  } catch (err) {
+    if (loadError === null) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to load model';
+      setLoadError(errorMsg);
+      console.error('Error loading custom model:', err);
+    }
+    
+    // Fallback to a cube if model fails to load
+    return (
+      <mesh castShadow>
+        <boxGeometry args={[2, 2, 2]} />
+        <meshStandardMaterial 
+          color="#ff0000"
+          emissive="#ff0000"
+          emissiveIntensity={0.3}
+        />
+      </mesh>
+    );
+  }
+};
+
 interface Shape3DProps {
   shapeType?: ShapeType;
   size?: number;
   color: string;
   emissive?: string;
   emissiveIntensity?: number;
+  customModelUrl?: string;
 }
 
 // Reusable 3D shape component
-const Shape3D = ({ shapeType = 'cube', size = 2, color, emissive = '#000000', emissiveIntensity = 0 }: Shape3DProps) => {
+const Shape3D = ({ shapeType = 'cube', size = 2, color, emissive = '#000000', emissiveIntensity = 0, customModelUrl }: Shape3DProps) => {
+  // If custom model URL is provided and shapeType is 'custom', render the custom model
+  if (shapeType === 'custom' && customModelUrl) {
+    return (
+      <CustomModel 
+        url={customModelUrl}
+        color={color}
+        emissive={emissive}
+        emissiveIntensity={emissiveIntensity}
+      />
+    );
+  }
+  
   const renderGeometry = () => {
     switch (shapeType) {
       case 'sphere':
@@ -103,6 +175,7 @@ const StepCube = ({ step, position, isActive }: StepCubeProps) => {
           color={color}
           emissive={isActive ? color : '#000000'}
           emissiveIntensity={isActive ? 0.3 : 0}
+          customModelUrl={step.customModelUrl}
         />
       </group>
       
