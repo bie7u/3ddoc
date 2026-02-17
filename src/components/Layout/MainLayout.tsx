@@ -6,7 +6,11 @@ import { StepProperties } from '../StepProperties/StepProperties';
 import { PreviewMode } from '../PreviewMode/PreviewMode';
 import { sampleProject } from '../../utils/sampleData';
 
-export const MainLayout = () => {
+interface MainLayoutProps {
+  onBackToProjectList?: () => void;
+}
+
+export const MainLayout = ({ onBackToProjectList }: MainLayoutProps) => {
   const { 
     project, 
     selectedStepId, 
@@ -24,12 +28,12 @@ export const MainLayout = () => {
     loadFromLocalStorage();
   }, [loadFromLocalStorage]);
 
-  // Set sample project if none loaded
+  // Set sample project if none loaded (only if no callback provided)
   useEffect(() => {
-    if (!project) {
+    if (!project && !onBackToProjectList) {
       setProject(sampleProject);
     }
-  }, [project, setProject]);
+  }, [project, setProject, onBackToProjectList]);
 
   const handleTogglePreview = () => {
     setPreviewMode(!isPreviewMode);
@@ -58,6 +62,18 @@ export const MainLayout = () => {
       {/* Top Bar */}
       <div className="h-14 bg-gray-800 text-white flex items-center justify-between px-4 shadow-lg">
         <div className="flex items-center gap-4">
+          {onBackToProjectList && (
+            <button
+              onClick={onBackToProjectList}
+              className="px-3 py-2 bg-gray-700 rounded hover:bg-gray-600 transition flex items-center gap-2"
+              title="Powrót do listy projektów"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-sm">Projekty</span>
+            </button>
+          )}
           <h1 className="text-xl font-bold">3D Instruction Builder</h1>
           {project && (
             <span className="text-sm text-gray-300">
