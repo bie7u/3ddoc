@@ -122,26 +122,26 @@ export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = tru
 
       {/* Main Content - Modern 3-Panel Layout */}
       <div className="flex-1 flex overflow-hidden gap-1 p-1">
-        {/* Left Panel - Edit Panel (Step Flow Editor) */}
-        <div className="flex-1 min-w-[400px] bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+        {/* Left Panel - Step Management (Properties Editor) */}
+        <div className="w-80 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
           <div className="h-full flex flex-col">
             {/* Panel Header */}
             <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                   </svg>
                 </div>
                 <div>
-                  <h2 className="font-bold text-slate-800 text-base">Edit Panel</h2>
-                  <p className="text-xs text-slate-500">Design your instruction flow</p>
+                  <h2 className="font-bold text-slate-800 text-base">Step Management</h2>
+                  <p className="text-xs text-slate-500">Add and configure steps</p>
                 </div>
               </div>
             </div>
             {/* Content */}
-            <div className="flex-1 bg-slate-50">
-              <StepBuilder />
+            <div className="flex-1 overflow-y-auto bg-slate-50">
+              <StepProperties />
             </div>
           </div>
         </div>
@@ -177,26 +177,26 @@ export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = tru
           </div>
         </div>
 
-        {/* Right Panel - Properties Editor */}
-        <div className="w-80 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+        {/* Right Panel - Edit Panel (Step Flow Editor) */}
+        <div className="flex-1 min-w-[400px] bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
           <div className="h-full flex flex-col">
             {/* Panel Header */}
             <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
                   </svg>
                 </div>
                 <div>
-                  <h2 className="font-bold text-slate-800 text-base">Properties</h2>
-                  <p className="text-xs text-slate-500">Configure step details</p>
+                  <h2 className="font-bold text-slate-800 text-base">Edit Panel</h2>
+                  <p className="text-xs text-slate-500">Design your instruction flow</p>
                 </div>
               </div>
             </div>
             {/* Content */}
-            <div className="flex-1 overflow-y-auto bg-slate-50">
-              <StepProperties />
+            <div className="flex-1 bg-slate-50">
+              <StepBuilder />
             </div>
           </div>
         </div>

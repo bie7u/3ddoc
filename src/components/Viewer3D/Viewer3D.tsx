@@ -582,14 +582,14 @@ const CameraController = ({ project, currentStepId, nodePositions, cameraMode }:
       
       if (!currentStepId || !project) {
         // Default camera position to see all cubes
-        targetPos.current.set(0, 10, 15);
+        targetPos.current.set(0, 20, 35);
         targetLookAt.current.set(0, 0, 0);
         return;
       }
 
       const currentStep = project.steps.find(s => s.id === currentStepId);
       if (!currentStep) {
-        targetPos.current.set(0, 10, 15);
+        targetPos.current.set(0, 20, 35);
         targetLookAt.current.set(0, 0, 0);
         return;
       }
@@ -598,14 +598,14 @@ const CameraController = ({ project, currentStepId, nodePositions, cameraMode }:
       const stepPos = layout.get(currentStepId);
       
       if (!stepPos) {
-        targetPos.current.set(0, 10, 15);
+        targetPos.current.set(0, 20, 35);
         targetLookAt.current.set(0, 0, 0);
         return;
       }
       
       // Position camera to focus on current cube but keep context visible
-      const cameraDistance = 10;
-      const cameraHeight = 6;
+      const cameraDistance = 35;
+      const cameraHeight = 15;
       
       targetPos.current.set(stepPos.x, cameraHeight, stepPos.z + cameraDistance);
       targetLookAt.current.set(stepPos.x, stepPos.y, stepPos.z);
@@ -649,7 +649,7 @@ export const Viewer3D = ({ project, currentStepId, nodePositions = {}, cameraMod
   return (
     <div className="w-full h-full bg-gray-900">
       <Canvas shadows>
-        <PerspectiveCamera makeDefault position={[0, 10, 15]} />
+        <PerspectiveCamera makeDefault position={[0, 20, 35]} />
         {project && (
           <CameraController 
             project={project}
