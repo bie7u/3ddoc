@@ -49,94 +49,137 @@ export const PreviewMode = () => {
   };
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative bg-gradient-to-br from-slate-900 to-slate-800">
       {/* 3D Viewer */}
       <Viewer3D project={project} currentStepId={currentStep.id} nodePositions={nodePositions} cameraMode={cameraMode} />
 
-      {/* Camera mode toggle */}
-      <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-4 py-2 rounded shadow-lg z-10">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold">Camera:</span>
+      {/* Top Bar - Modern glass-morphism style */}
+      <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-md border-b border-white/10 z-10">
+        <div className="px-6 py-4 flex items-center justify-between">
+          {/* Left side - Camera controls */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/10 shadow-xl">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="text-sm font-semibold text-white">Camera:</span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCameraMode('auto')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    cameraMode === 'auto'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
+                      : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                  }`}
+                >
+                  Auto
+                </button>
+                <button
+                  onClick={() => setCameraMode('free')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    cameraMode === 'free'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
+                      : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                  }`}
+                >
+                  Free
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Center - Mode indicator */}
+          <div className="flex items-center gap-3 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 backdrop-blur-sm px-6 py-2 rounded-xl border border-blue-400/30 shadow-xl">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse shadow-lg shadow-blue-400/50"></div>
+            <span className="text-sm font-bold text-white">Preview Mode</span>
+          </div>
+
+          {/* Right side - Exit button */}
           <button
-            onClick={() => setCameraMode('auto')}
-            className={`px-3 py-1 rounded text-sm ${
-              cameraMode === 'auto'
-                ? 'bg-blue-500 hover:bg-blue-600'
-                : 'bg-gray-600 hover:bg-gray-500'
-            }`}
+            onClick={handleExit}
+            className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl hover:from-red-600 hover:to-rose-700 transition-all duration-200 shadow-xl shadow-red-500/30 font-medium"
           >
-            Auto
-          </button>
-          <button
-            onClick={() => setCameraMode('free')}
-            className={`px-3 py-1 rounded text-sm ${
-              cameraMode === 'free'
-                ? 'bg-blue-500 hover:bg-blue-600'
-                : 'bg-gray-600 hover:bg-gray-500'
-            }`}
-          >
-            Free
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Exit Preview
           </button>
         </div>
       </div>
 
-      {/* Exit button */}
-      <button
-        onClick={handleExit}
-        className="absolute top-4 right-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 shadow-lg z-10"
-      >
-        Exit Preview
-      </button>
+      {/* Step title overlay - Modern card */}
+      <div className="absolute top-24 left-6 bg-black/40 backdrop-blur-md text-white px-6 py-4 rounded-xl shadow-2xl border border-white/10 max-w-md z-10">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
+            <span className="text-lg font-bold">{currentPreviewStepIndex + 1}</span>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold mb-1">{currentStep.title}</h3>
+            <p className="text-sm text-slate-300 leading-relaxed">{currentStep.description}</p>
+          </div>
+        </div>
+      </div>
 
-      {/* Navigation controls */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-6 py-4 rounded-lg shadow-lg z-10">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handlePrevious}
-            disabled={!canGoPrevious}
-            className={`px-4 py-2 rounded ${
-              canGoPrevious
-                ? 'bg-blue-500 hover:bg-blue-600'
-                : 'bg-gray-600 cursor-not-allowed'
-            }`}
-          >
-            ← Previous
-          </button>
+      {/* Navigation controls - Modern glass-morphism */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
+        <div className="bg-black/40 backdrop-blur-md text-white px-8 py-5 rounded-2xl shadow-2xl border border-white/10">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={handlePrevious}
+              disabled={!canGoPrevious}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-200 ${
+                canGoPrevious
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg shadow-blue-500/30'
+                  : 'bg-white/10 cursor-not-allowed opacity-50'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </button>
 
-          <div className="text-center min-w-[120px]">
-            <div className="text-sm text-gray-300">Step</div>
-            <div className="text-lg font-bold">
-              {currentPreviewStepIndex + 1} / {project.steps.length}
+            <div className="text-center min-w-[140px] px-4">
+              <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Step</div>
+              <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                {currentPreviewStepIndex + 1} / {project.steps.length}
+              </div>
             </div>
+
+            <button
+              onClick={handleNext}
+              disabled={!canGoNext}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-200 ${
+                canGoNext
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg shadow-blue-500/30'
+                  : 'bg-white/10 cursor-not-allowed opacity-50'
+              }`}
+            >
+              Next
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
 
-          <button
-            onClick={handleNext}
-            disabled={!canGoNext}
-            className={`px-4 py-2 rounded ${
-              canGoNext
-                ? 'bg-blue-500 hover:bg-blue-600'
-                : 'bg-gray-600 cursor-not-allowed'
-            }`}
-          >
-            Next →
-          </button>
-        </div>
-
-        {/* Step selector */}
-        <div className="mt-4 flex gap-2 justify-center">
-          {project.steps.map((step, index) => (
-            <button
-              key={step.id}
-              onClick={() => setCurrentPreviewStepIndex(index)}
-              className={`w-3 h-3 rounded-full transition ${
-                index === currentPreviewStepIndex
-                  ? 'bg-blue-500 scale-125'
-                  : 'bg-gray-500 hover:bg-gray-400'
-              }`}
-              title={step.title}
-            />
-          ))}
+          {/* Step indicator dots */}
+          <div className="mt-5 flex gap-2 justify-center pt-4 border-t border-white/10">
+            {project.steps.map((step, index) => (
+              <button
+                key={step.id}
+                onClick={() => setCurrentPreviewStepIndex(index)}
+                className={`rounded-full transition-all duration-200 ${
+                  index === currentPreviewStepIndex
+                    ? 'w-8 h-3 bg-gradient-to-r from-blue-400 to-indigo-500 shadow-lg shadow-blue-400/50'
+                    : 'w-3 h-3 bg-white/30 hover:bg-white/50 hover:scale-110'
+                }`}
+                title={step.title}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
