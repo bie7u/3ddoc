@@ -305,7 +305,7 @@ export const StepBuilder = () => {
       });
       setNodes(updatedNodes);
     }
-  }, [project?.steps, setNodes]);
+  }, [project?.steps, nodePositions, setNodes]);
 
   // Update edges when connections change
   useEffect(() => {
