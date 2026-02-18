@@ -11,7 +11,7 @@ function App() {
   const { setProject, createNewProject, setPreviewMode } = useAppStore();
 
   const handleSelectProject = (savedProject: SavedProject) => {
-    setProject(savedProject.project);
+    setProject(savedProject.project, savedProject.nodePositions);
     setPreviewMode(true);
     setShowProjectList(false);
   };
