@@ -4,9 +4,18 @@ import { useAppStore, type SavedProject } from '../../store';
 interface ProjectListProps {
   onSelectProject: (project: SavedProject) => void;
   onCreateNew: () => void;
+  onGoToEditorPanel?: () => void; // For main list to go to editor panel
+  onBackToMainList?: () => void; // For editor panel to go back to main list
+  isEditorPanel: boolean; // Indicates if this is the editor panel or main viewer list
 }
 
-export const ProjectList = ({ onSelectProject, onCreateNew }: ProjectListProps) => {
+export const ProjectList = ({ 
+  onSelectProject, 
+  onCreateNew, 
+  onGoToEditorPanel,
+  onBackToMainList,
+  isEditorPanel 
+}: ProjectListProps) => {
   const { getAllProjects, deleteProject } = useAppStore();
   const [projects, setProjects] = useState<SavedProject[]>(getAllProjects());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
@@ -45,8 +54,25 @@ export const ProjectList = ({ onSelectProject, onCreateNew }: ProjectListProps) 
         <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6">
-            <h1 className="text-3xl font-bold text-white mb-2">3D Instruction Builder</h1>
-            <p className="text-blue-100">Wybierz model lub utwórz nowy projekt</p>
+            {isEditorPanel && onBackToMainList && (
+              <button
+                onClick={onBackToMainList}
+                className="mb-4 flex items-center gap-2 text-white hover:text-blue-100 transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm font-medium">Powrót do listy projektów</span>
+              </button>
+            )}
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {isEditorPanel ? 'Panel Edytora' : '3D Instruction Builder'}
+            </h1>
+            <p className="text-blue-100">
+              {isEditorPanel 
+                ? 'Wybierz projekt do edycji' 
+                : 'Wybierz model lub utwórz nowy projekt'}
+            </p>
           </div>
 
           {/* Content */}
@@ -150,6 +176,21 @@ export const ProjectList = ({ onSelectProject, onCreateNew }: ProjectListProps) 
                 </svg>
                 <p className="text-lg">Nie masz jeszcze żadnych projektów</p>
                 <p className="text-sm mt-2">Kliknij przycisk powyżej, aby utworzyć pierwszy projekt</p>
+              </div>
+            )}
+
+            {/* Go to Editor Panel button - only show on main list, not in editor panel */}
+            {!isEditorPanel && onGoToEditorPanel && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <button
+                  onClick={onGoToEditorPanel}
+                  className="w-full p-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg flex items-center justify-center gap-3 font-semibold"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Przejdź do panelu edytora
+                </button>
               </div>
             )}
           </div>
