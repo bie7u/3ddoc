@@ -8,10 +8,11 @@ import { sampleProject } from '../../utils/sampleData';
 
 interface MainLayoutProps {
   onBackToProjectList?: () => void;
+  onGoToEditorPanel?: () => void;
   useSampleProjectFallback?: boolean;
 }
 
-export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = true }: MainLayoutProps) => {
+export const MainLayout = ({ onBackToProjectList, onGoToEditorPanel, useSampleProjectFallback = true }: MainLayoutProps) => {
   const { 
     project, 
     selectedStepId, 
@@ -21,7 +22,9 @@ export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = tru
     loadFromLocalStorage,
     nodePositions,
     cameraMode,
-    setCameraMode
+    setCameraMode,
+    viewMode,
+    setViewMode
   } = useAppStore();
 
   // Load project on mount
@@ -53,11 +56,12 @@ export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = tru
   if (isPreviewMode) {
     return (
       <div className="w-screen h-screen">
-        <PreviewMode />
+        <PreviewMode onGoToEditorPanel={onGoToEditorPanel} />
       </div>
     );
   }
 
+  // Editor mode - full editing interface
   return (
     <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Modern Top Bar with gradient */}
@@ -91,6 +95,10 @@ export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = tru
         </div>
         
         <div className="flex items-center gap-3">
+          <div className="px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-lg border border-green-500/30 shadow-lg flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full shadow-lg shadow-green-400/50 motion-safe:animate-pulse" aria-hidden="true"></div>
+            <span className="text-sm font-medium text-green-300">Editor Mode</span>
+          </div>
           <button
             onClick={handleToggleCameraMode}
             className={`px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium shadow-lg ${

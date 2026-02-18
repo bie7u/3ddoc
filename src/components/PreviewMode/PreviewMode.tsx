@@ -1,7 +1,7 @@
 import { useAppStore } from '../../store';
 import { Viewer3D } from '../Viewer3D/Viewer3D';
 
-export const PreviewMode = () => {
+export const PreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: () => void }) => {
   const { 
     project, 
     currentPreviewStepIndex, 
@@ -9,7 +9,9 @@ export const PreviewMode = () => {
     setPreviewMode,
     nodePositions,
     cameraMode,
-    setCameraMode
+    setCameraMode,
+    viewMode,
+    setViewMode
   } = useAppStore();
 
   if (!project || project.steps.length === 0) {
@@ -46,6 +48,12 @@ export const PreviewMode = () => {
 
   const handleExit = () => {
     setPreviewMode(false);
+  };
+
+  const handleGoToEditorPanel = () => {
+    if (onGoToEditorPanel) {
+      onGoToEditorPanel();
+    }
   };
 
   return (
@@ -97,16 +105,29 @@ export const PreviewMode = () => {
             <span className="text-sm font-bold text-white">Preview Mode</span>
           </div>
 
-          {/* Right side - Exit button */}
-          <button
-            onClick={handleExit}
-            className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl hover:from-red-600 hover:to-rose-700 transition-all duration-200 shadow-xl shadow-red-500/30 font-medium"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            Exit Preview
-          </button>
+          {/* Right side - Exit and Editor Panel buttons */}
+          <div className="flex items-center gap-3">
+            {viewMode === 'view' && onGoToEditorPanel && (
+              <button
+                onClick={handleGoToEditorPanel}
+                className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-xl shadow-green-500/30 font-medium"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Przejdź do panelu edytora
+              </button>
+            )}
+            <button
+              onClick={handleExit}
+              className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl hover:from-red-600 hover:to-rose-700 transition-all duration-200 shadow-xl shadow-red-500/30 font-medium"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Exit Preview
+            </button>
+          </div>
         </div>
       </div>
 

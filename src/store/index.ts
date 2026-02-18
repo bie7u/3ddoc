@@ -19,6 +19,9 @@ interface AppStore {
   isPreviewMode: boolean;
   currentPreviewStepIndex: number;
   
+  // View/Edit mode
+  viewMode: 'view' | 'edit';
+  
   // Camera mode
   cameraMode: 'auto' | 'free';
   
@@ -35,6 +38,7 @@ interface AppStore {
   updateNodePosition: (id: string, position: { x: number; y: number }) => void;
   setPreviewMode: (isPreview: boolean) => void;
   setCurrentPreviewStepIndex: (index: number) => void;
+  setViewMode: (mode: 'view' | 'edit') => void;
   setCameraMode: (mode: 'auto' | 'free') => void;
   saveToLocalStorage: () => void;
   loadFromLocalStorage: () => void;
@@ -51,6 +55,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   selectedStepId: null,
   isPreviewMode: false,
   currentPreviewStepIndex: 0,
+  viewMode: 'view',
   cameraMode: 'auto',
   nodePositions: {},
 
@@ -150,6 +155,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   setCurrentPreviewStepIndex: (index) => set({ currentPreviewStepIndex: index }),
+
+  setViewMode: (mode) => set({ viewMode: mode }),
 
   setCameraMode: (mode) => set({ cameraMode: mode }),
 
