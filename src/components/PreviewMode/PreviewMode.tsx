@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAppStore } from '../../store';
 import { Viewer3D } from '../Viewer3D/Viewer3D';
 
@@ -10,9 +11,9 @@ export const PreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: () => v
     nodePositions,
     cameraMode,
     setCameraMode,
-    viewMode,
-    setViewMode
+    viewMode
   } = useAppStore();
+  const [showCopyNotification, setShowCopyNotification] = useState(false);
 
   if (!project || project.steps.length === 0) {
     return (
@@ -56,10 +57,35 @@ export const PreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: () => v
     }
   };
 
+  const handleShareLink = async () => {
+    if (project) {
+      const shareUrl = `${window.location.origin}/view/${project.id}`;
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setShowCopyNotification(true);
+        setTimeout(() => setShowCopyNotification(false), 3000);
+      } catch (err) {
+        console.error('Failed to copy link:', err);
+        // Fallback: show the URL in an alert
+        alert(`Share this link: ${shareUrl}`);
+      }
+    }
+  };
+
   return (
     <div className="w-full h-full relative bg-gradient-to-br from-slate-900 to-slate-800">
       {/* 3D Viewer */}
       <Viewer3D project={project} currentStepId={currentStep.id} nodePositions={nodePositions} cameraMode={cameraMode} />
+
+      {/* Copy notification toast */}
+      {showCopyNotification && (
+        <div className="absolute top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-[slideIn_0.3s_ease-out]">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="font-medium">Link copied to clipboard!</span>
+        </div>
+      )}
 
       {/* Top Bar - Modern glass-morphism style */}
       <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-md border-b border-white/10 z-10">
@@ -107,6 +133,16 @@ export const PreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: () => v
 
           {/* Right side - Exit and Editor Panel buttons */}
           <div className="flex items-center gap-3">
+            <button
+              onClick={handleShareLink}
+              className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-200 shadow-xl shadow-purple-500/30 font-medium"
+              title="Copy shareable link"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Share Link
+            </button>
             {viewMode === 'view' && onGoToEditorPanel && (
               <button
                 onClick={handleGoToEditorPanel}
