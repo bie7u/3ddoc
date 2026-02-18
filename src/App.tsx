@@ -8,11 +8,12 @@ import { useAppStore, type SavedProject } from './store';
 function App() {
   const [showProjectList, setShowProjectList] = useState(true);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
-  const { setProject, createNewProject, setPreviewMode } = useAppStore();
+  const { setProject, createNewProject, setPreviewMode, setViewMode } = useAppStore();
 
   const handleSelectProject = (savedProject: SavedProject) => {
     setProject(savedProject.project, savedProject.nodePositions);
     setPreviewMode(true);
+    setViewMode('view'); // Open in view-only mode when selecting from menu
     setShowProjectList(false);
   };
 
@@ -22,6 +23,7 @@ function App() {
 
   const handleConfirmNewProject = (projectName: string) => {
     createNewProject(projectName);
+    setViewMode('edit'); // Open in edit mode when creating new project
     setShowNewProjectDialog(false);
     setShowProjectList(false);
   };

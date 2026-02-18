@@ -21,7 +21,9 @@ export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = tru
     loadFromLocalStorage,
     nodePositions,
     cameraMode,
-    setCameraMode
+    setCameraMode,
+    viewMode,
+    setViewMode
   } = useAppStore();
 
   // Load project on mount
@@ -40,6 +42,11 @@ export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = tru
     setPreviewMode(!isPreviewMode);
   };
 
+  const handleEnterEditor = () => {
+    setViewMode('edit');
+    setPreviewMode(false);
+  };
+
   const handleToggleCameraMode = () => {
     setCameraMode(cameraMode === 'auto' ? 'free' : 'auto');
   };
@@ -54,6 +61,99 @@ export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = tru
     return (
       <div className="w-screen h-screen">
         <PreviewMode />
+      </div>
+    );
+  }
+
+  // View-only mode - just the 3D viewer with minimal controls
+  if (viewMode === 'view') {
+    return (
+      <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
+        {/* Top Bar */}
+        <div className="h-16 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-between px-6 shadow-xl border-b border-slate-700">
+          <div className="flex items-center gap-4">
+            {onBackToProjectList && (
+              <button
+                onClick={onBackToProjectList}
+                className="px-4 py-2 bg-slate-700/50 backdrop-blur-sm rounded-lg hover:bg-slate-600/50 transition-all duration-200 flex items-center gap-2 border border-slate-600/30 shadow-lg hover:shadow-slate-500/20"
+                title="Powrót do listy projektów"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm font-medium">Projekty</span>
+              </button>
+            )}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
+                <span className="text-xl" role="img" aria-label="Document">📝</span>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">3D Instruction Builder</h1>
+                {project && (
+                  <span className="text-xs text-slate-300 font-medium">
+                    {project.name}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleEnterEditor}
+              className="px-5 py-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-medium shadow-lg shadow-green-500/30 flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Enter Editor
+            </button>
+            <button
+              onClick={handleTogglePreview}
+              className="px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 font-medium shadow-lg shadow-blue-500/30 flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Preview Mode
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content - Single 3D Viewer Panel */}
+        <div className="flex-1 flex overflow-hidden p-4">
+          <div className="flex-1 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+            <div className="h-full flex flex-col">
+              {/* Panel Header */}
+              <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-slate-800 text-base">3D Model Viewer</h2>
+                    <p className="text-xs text-slate-500">View-only mode</p>
+                  </div>
+                </div>
+              </div>
+              {/* 3D Viewer Content */}
+              <div className="flex-1 relative bg-gradient-to-br from-slate-900 to-slate-800">
+                <Viewer3D project={project} currentStepId={selectedStepId} nodePositions={nodePositions} cameraMode={cameraMode} />
+                {!selectedStepId && project && project.steps.length > 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/60 backdrop-blur-sm text-white px-6 py-4 rounded-xl shadow-2xl border border-white/10">
+                      <p className="text-center text-sm font-medium">Click "Preview Mode" to view the instruction flow</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -91,6 +191,10 @@ export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = tru
         </div>
         
         <div className="flex items-center gap-3">
+          <div className="px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-lg border border-green-500/30 shadow-lg flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full shadow-lg shadow-green-400/50 motion-safe:animate-pulse" aria-hidden="true"></div>
+            <span className="text-sm font-medium text-green-300">Editor Mode</span>
+          </div>
           <button
             onClick={handleToggleCameraMode}
             className={`px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium shadow-lg ${
@@ -101,12 +205,14 @@ export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = tru
           >
             {cameraMode === 'free' ? '📷 Free Camera' : '📷 Auto Camera'}
           </button>
-          <button
-            onClick={handleLoadSample}
-            className="px-4 py-2 bg-slate-700/50 backdrop-blur-sm rounded-lg hover:bg-slate-600/50 transition-all duration-200 text-sm font-medium border border-slate-600/30 shadow-lg"
-          >
-            Load Sample
-          </button>
+          {!project && (
+            <button
+              onClick={handleLoadSample}
+              className="px-4 py-2 bg-slate-700/50 backdrop-blur-sm rounded-lg hover:bg-slate-600/50 transition-all duration-200 text-sm font-medium border border-slate-600/30 shadow-lg"
+            >
+              Load Sample
+            </button>
+          )}
           <button
             onClick={handleTogglePreview}
             className="px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 font-medium shadow-lg shadow-blue-500/30 flex items-center gap-2"
