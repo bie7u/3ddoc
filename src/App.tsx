@@ -12,7 +12,6 @@ function App() {
 
   const handleSelectProject = (savedProject: SavedProject) => {
     setProject(savedProject.project, savedProject.nodePositions);
-    setPreviewMode(true);
     setViewMode('view'); // Open in view-only mode when selecting from menu
     setShowProjectList(false);
   };

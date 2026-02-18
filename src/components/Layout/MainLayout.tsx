@@ -205,14 +205,12 @@ export const MainLayout = ({ onBackToProjectList, useSampleProjectFallback = tru
           >
             {cameraMode === 'free' ? '📷 Free Camera' : '📷 Auto Camera'}
           </button>
-          {!project && (
-            <button
-              onClick={handleLoadSample}
-              className="px-4 py-2 bg-slate-700/50 backdrop-blur-sm rounded-lg hover:bg-slate-600/50 transition-all duration-200 text-sm font-medium border border-slate-600/30 shadow-lg"
-            >
-              Load Sample
-            </button>
-          )}
+          <button
+            onClick={handleLoadSample}
+            className="px-4 py-2 bg-slate-700/50 backdrop-blur-sm rounded-lg hover:bg-slate-600/50 transition-all duration-200 text-sm font-medium border border-slate-600/30 shadow-lg"
+          >
+            Load Sample
+          </button>
           <button
             onClick={handleTogglePreview}
             className="px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 font-medium shadow-lg shadow-blue-500/30 flex items-center gap-2"
