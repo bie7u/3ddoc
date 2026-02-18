@@ -93,7 +93,7 @@ export const PreviewMode = () => {
 
           {/* Center - Mode indicator */}
           <div className="flex items-center gap-3 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 backdrop-blur-sm px-6 py-2 rounded-xl border border-blue-400/30 shadow-xl">
-            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse shadow-lg shadow-blue-400/50"></div>
+            <div className="w-2 h-2 bg-blue-400 rounded-full shadow-lg shadow-blue-400/50 motion-safe:animate-pulse" aria-hidden="true"></div>
             <span className="text-sm font-bold text-white">Preview Mode</span>
           </div>
 
@@ -144,7 +144,7 @@ export const PreviewMode = () => {
 
             <div className="text-center min-w-[140px] px-4">
               <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Step</div>
-              <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+              <div className="text-2xl font-bold text-blue-300" aria-label={`Step ${currentPreviewStepIndex + 1} of ${project.steps.length}`}>
                 {currentPreviewStepIndex + 1} / {project.steps.length}
               </div>
             </div>
