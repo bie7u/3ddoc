@@ -7,12 +7,14 @@ import {
   Component,
   type ReactNode,
 } from 'react';
+import DOMPurify from 'dompurify';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import type { ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, useGLTF } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import type { CameraPosition } from '../../types';
+import { isHtmlContent } from '../../utils/html';
 
 // ─── Public types ──────────────────────────────────────────────────────────────
 
@@ -375,7 +377,14 @@ export const UploadedModelCanvas = ({
             <div>
               <h3 className="font-bold text-base mb-1">{stepTitle}</h3>
               {stepDescription && (
-                <p className="text-sm text-slate-300 leading-relaxed">{stepDescription}</p>
+                isHtmlContent(stepDescription) ? (
+                  <div
+                    className="text-sm text-slate-300 leading-relaxed rich-text-preview"
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(stepDescription) }}
+                  />
+                ) : (
+                  <p className="text-sm text-slate-300 leading-relaxed">{stepDescription}</p>
+                )
               )}
             </div>
           </div>
