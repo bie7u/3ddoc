@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import DOMPurify from 'dompurify';
 import { useAppStore } from '../../store';
 import { Viewer3D } from '../Viewer3D/Viewer3D';
 
@@ -183,7 +184,16 @@ export const PreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: () => v
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold mb-1">{currentStep.title}</h3>
-            <p className="text-sm text-slate-300 leading-relaxed">{currentStep.description}</p>
+            {/<(p|div|h[1-6]|ul|ol|li|code|pre|blockquote|strong|em|s)[\s>]/i.test(currentStep.description) ? (
+              <div
+                className="text-sm text-slate-300 leading-relaxed rich-text-preview"
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(currentStep.description),
+                }}
+              />
+            ) : (
+              <p className="text-sm text-slate-300 leading-relaxed">{currentStep.description}</p>
+            )}
           </div>
         </div>
       </div>

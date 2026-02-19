@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAppStore } from '../../store';
 import type { InstructionStep, ShapeType } from '../../types';
+import { RichTextEditor } from '../RichTextEditor';
 
 export const StepProperties = () => {
   const { project, selectedStepId, updateStep, deleteStep, addStep } = useAppStore();
@@ -109,11 +110,9 @@ export const StepProperties = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
-              <textarea
+              <RichTextEditor
                 value={formData.description || ''}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(value) => handleInputChange('description', value)}
               />
             </div>
 
