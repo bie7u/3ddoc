@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useAppStore } from '../../store';
 import { Viewer3D } from '../Viewer3D/Viewer3D';
+import { RichTextEditor } from '../RichTextEditor';
 import type { GuideStep } from '../../types';
 
 export const GuideBuilder = () => {
@@ -13,6 +14,7 @@ export const GuideBuilder = () => {
     addGuideStep,
     removeGuideStep,
     reorderGuideSteps,
+    updateStep,
   } = useAppStore();
 
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -61,8 +63,10 @@ export const GuideBuilder = () => {
     e.preventDefault();
   };
 
+  const selectedStep = project.steps.find((s) => s.id === selectedStepId) ?? null;
+
   return (
-    <div className="w-full h-full flex overflow-hidden gap-1">
+    <div className="w-full h-full flex overflow-hidden gap-4">
       {/* Left panel – Available model steps */}
       <div className="w-72 bg-white rounded-xl shadow-xl border border-slate-200 flex flex-col overflow-hidden">
         <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 flex-shrink-0">
@@ -126,29 +130,67 @@ export const GuideBuilder = () => {
         </div>
       </div>
 
-      {/* Center panel – 3D Preview */}
-      <div className="flex-1 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden flex flex-col">
-        <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-lg">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="font-bold text-slate-800 text-base">3D Preview</h2>
-              <p className="text-xs text-slate-500">Select a step to focus</p>
+      {/* Center panel – 3D Preview + Step Editor */}
+      <div className="flex-1 flex flex-col gap-4 min-h-0 overflow-hidden">
+        {/* 3D Preview */}
+        <div className="flex-1 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden flex flex-col min-h-0">
+          <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-lg">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="font-bold text-slate-800 text-base">3D Preview</h2>
+                <p className="text-xs text-slate-500">Select a step to focus</p>
+              </div>
             </div>
           </div>
+          <div className="flex-1 relative bg-gradient-to-br from-slate-900 to-slate-800">
+            <Viewer3D
+              project={project}
+              currentStepId={selectedStepId}
+              nodePositions={nodePositions}
+              cameraMode={cameraMode}
+            />
+          </div>
         </div>
-        <div className="flex-1 relative bg-gradient-to-br from-slate-900 to-slate-800">
-          <Viewer3D
-            project={project}
-            currentStepId={selectedStepId}
-            nodePositions={nodePositions}
-            cameraMode={cameraMode}
-          />
-        </div>
+
+        {/* Step Editor – shown when a step is selected */}
+        {selectedStep && (
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 flex flex-col overflow-hidden flex-shrink-0">
+            <div className="px-5 py-3 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 flex items-center gap-3">
+              <div className="w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="font-bold text-slate-800 text-sm">Edit Step</h2>
+                <p className="text-xs text-slate-500">Changes are saved automatically</p>
+              </div>
+            </div>
+            <div className="p-4 space-y-3 overflow-y-auto max-h-72">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Title</label>
+                <input
+                  type="text"
+                  value={selectedStep.title}
+                  onChange={(e) => updateStep(selectedStep.id, { title: e.target.value })}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+                <RichTextEditor
+                  value={selectedStep.description}
+                  onChange={(value) => updateStep(selectedStep.id, { description: value })}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right panel – Guide steps (ordered) */}

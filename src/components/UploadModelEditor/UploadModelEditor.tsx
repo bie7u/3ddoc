@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import { useAppStore } from '../../store';
 import { UploadedModelCanvas } from './UploadedModelCanvas';
+import { RichTextEditor } from '../RichTextEditor';
+import { stripHtmlTags } from '../../utils/html';
 import type { MeshPickResult, CameraSnapshot } from './UploadedModelCanvas';
 import type { InstructionStep, CameraPosition } from '../../types';
 
@@ -329,14 +331,11 @@ export const UploadModelEditor = () => {
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Opis</label>
-                <textarea
+                <RichTextEditor
                   value={editingStep.description}
-                  onChange={(e) =>
-                    setEditingStep((prev) => prev ? { ...prev, description: e.target.value } : prev)
+                  onChange={(value) =>
+                    setEditingStep((prev) => prev ? { ...prev, description: value } : prev)
                   }
-                  rows={3}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  placeholder="Opis kroku…"
                 />
               </div>
               <div>
@@ -428,7 +427,9 @@ export const UploadModelEditor = () => {
                     </p>
                   )}
                   {step.description && (
-                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{step.description}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                      {stripHtmlTags(step.description)}
+                    </p>
                   )}
                 </div>
               </div>
