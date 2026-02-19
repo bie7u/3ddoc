@@ -153,6 +153,7 @@ export const GuideBuilder = () => {
               currentStepId={selectedStepId}
               nodePositions={nodePositions}
               cameraMode={cameraMode}
+              showStepOverlay={false}
             />
           </div>
         </div>
