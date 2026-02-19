@@ -375,13 +375,10 @@ export const UploadedModelCanvas = ({
           </>
         )}
 
-        {/* Ground plane receiving shadows in preview mode */}
-        {!showGrid && (
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]} receiveShadow>
-            <planeGeometry args={[300, 300]} />
-            <meshStandardMaterial color="#0d1117" roughness={0.9} metalness={0.1} />
-          </mesh>
-        )}
+        {/* Ground plane removed from UploadedModelCanvas: uploaded models are
+            auto-centered at the bounding-box midpoint (y=0), so a fixed-height
+            plane would occlude the lower half of any model taller than ~6 units.
+            The hemisphere + directional lights already provide the "alive" look. */}
 
         <CameraController
           orbitRef={orbitRef}
