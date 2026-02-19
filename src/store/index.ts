@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Edge } from 'reactflow';
-import type { InstructionStep, ProjectData, ConnectionData } from '../types';
+import type { InstructionStep, ProjectData, ConnectionData, GuideStep } from '../types';
 
 export interface SavedProject {
   project: ProjectData;
@@ -22,6 +22,9 @@ interface AppStore {
   // View/Edit mode
   viewMode: 'view' | 'edit';
   
+  // Editor stage: model builder vs guide builder
+  editorMode: 'model' | 'guide';
+  
   // Camera mode
   cameraMode: 'auto' | 'free';
   
@@ -39,7 +42,11 @@ interface AppStore {
   setPreviewMode: (isPreview: boolean) => void;
   setCurrentPreviewStepIndex: (index: number) => void;
   setViewMode: (mode: 'view' | 'edit') => void;
+  setEditorMode: (mode: 'model' | 'guide') => void;
   setCameraMode: (mode: 'auto' | 'free') => void;
+  addGuideStep: (stepId: string) => void;
+  removeGuideStep: (guideStepId: string) => void;
+  reorderGuideSteps: (steps: GuideStep[]) => void;
   saveToLocalStorage: () => void;
   loadFromLocalStorage: () => void;
   getAllProjects: () => SavedProject[];
@@ -56,6 +63,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   isPreviewMode: false,
   currentPreviewStepIndex: 0,
   viewMode: 'view',
+  editorMode: 'model',
   cameraMode: 'auto',
   nodePositions: {},
 
@@ -110,6 +118,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       connections: project.connections.filter(
         (edge) => edge.source !== id && edge.target !== id
       ),
+      guide: (project.guide ?? []).filter((gs) => gs.stepId !== id),
     };
     
     // Remove position data for deleted node
@@ -158,7 +167,43 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   setViewMode: (mode) => set({ viewMode: mode }),
 
+  setEditorMode: (mode) => set({ editorMode: mode }),
+
   setCameraMode: (mode) => set({ cameraMode: mode }),
+
+  addGuideStep: (stepId) => {
+    const { project } = get();
+    if (!project) return;
+    const newGuideStep: GuideStep = {
+      id: `guide-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+      stepId,
+    };
+    const updatedProject = {
+      ...project,
+      guide: [...(project.guide ?? []), newGuideStep],
+    };
+    set({ project: updatedProject });
+    get().saveToLocalStorage();
+  },
+
+  removeGuideStep: (guideStepId) => {
+    const { project } = get();
+    if (!project) return;
+    const updatedProject = {
+      ...project,
+      guide: (project.guide ?? []).filter((gs) => gs.id !== guideStepId),
+    };
+    set({ project: updatedProject });
+    get().saveToLocalStorage();
+  },
+
+  reorderGuideSteps: (steps) => {
+    const { project } = get();
+    if (!project) return;
+    const updatedProject = { ...project, guide: steps };
+    set({ project: updatedProject });
+    get().saveToLocalStorage();
+  },
 
   saveToLocalStorage: () => {
     const { project, nodePositions } = get();
@@ -252,6 +297,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       name: projectName,
       steps: [],
       connections: [],
+      guide: [],
     };
     set({ project: newProject, nodePositions: {}, selectedStepId: null });
     get().saveToLocalStorage();
