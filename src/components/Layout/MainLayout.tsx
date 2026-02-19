@@ -4,6 +4,7 @@ import { StepBuilder } from '../StepBuilder/StepBuilder';
 import { Viewer3D } from '../Viewer3D/Viewer3D';
 import { StepProperties } from '../StepProperties/StepProperties';
 import { PreviewMode } from '../PreviewMode/PreviewMode';
+import { GuideBuilder } from '../GuideBuilder/GuideBuilder';
 import { sampleProject } from '../../utils/sampleData';
 
 interface MainLayoutProps {
@@ -22,7 +23,9 @@ export const MainLayout = ({ onBackToProjectList, onGoToEditorPanel, useSamplePr
     loadFromLocalStorage,
     nodePositions,
     cameraMode,
-    setCameraMode
+    setCameraMode,
+    editorMode,
+    setEditorMode,
   } = useAppStore();
 
   // Load project on mount
@@ -97,6 +100,31 @@ export const MainLayout = ({ onBackToProjectList, onGoToEditorPanel, useSamplePr
             <div className="w-2 h-2 bg-green-400 rounded-full shadow-lg shadow-green-400/50 motion-safe:animate-pulse" aria-hidden="true"></div>
             <span className="text-sm font-medium text-green-300">Editor Mode</span>
           </div>
+
+          {/* Stage tabs */}
+          <div className="flex items-center bg-slate-700/50 rounded-lg p-1 border border-slate-600/30">
+            <button
+              onClick={() => setEditorMode('model')}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                editorMode === 'model'
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
+                  : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              🧱 Model Builder
+            </button>
+            <button
+              onClick={() => setEditorMode('guide')}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                editorMode === 'guide'
+                  ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg'
+                  : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              📋 Guide Builder
+            </button>
+          </div>
+
           <button
             onClick={handleToggleCameraMode}
             className={`px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium shadow-lg ${
@@ -121,91 +149,97 @@ export const MainLayout = ({ onBackToProjectList, onGoToEditorPanel, useSamplePr
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Preview Mode
+            Preview
           </button>
         </div>
       </div>
 
-      {/* Main Content - Modern 3-Panel Layout */}
+      {/* Main Content */}
       <div className="flex-1 flex overflow-hidden gap-1 p-1">
-        {/* Left Panel - Step Management (Properties Editor) */}
-        <div className="w-80 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
-          <div className="h-full flex flex-col">
-            {/* Panel Header */}
-            <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="font-bold text-slate-800 text-base">Step Management</h2>
-                  <p className="text-xs text-slate-500">Add and configure steps</p>
-                </div>
-              </div>
-            </div>
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto bg-slate-50">
-              <StepProperties />
-            </div>
-          </div>
-        </div>
-
-        {/* Center Panel - 3D Preview */}
-        <div className="w-96 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
-          <div className="h-full flex flex-col">
-            {/* Panel Header */}
-            <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="font-bold text-slate-800 text-base">3D Preview</h2>
-                  <p className="text-xs text-slate-500">Live model view</p>
-                </div>
-              </div>
-            </div>
-            {/* 3D Viewer Content */}
-            <div className="flex-1 relative bg-gradient-to-br from-slate-900 to-slate-800">
-              <Viewer3D project={project} currentStepId={selectedStepId} nodePositions={nodePositions} cameraMode={cameraMode} />
-              {!selectedStepId && project && project.steps.length > 0 && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="bg-black/60 backdrop-blur-sm text-white px-6 py-4 rounded-xl shadow-2xl border border-white/10">
-                    <p className="text-center text-sm font-medium">Select a step to preview it in 3D</p>
+        {editorMode === 'guide' ? (
+          <GuideBuilder />
+        ) : (
+          <>
+            {/* Left Panel - Step Management (Properties Editor) */}
+            <div className="w-80 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+              <div className="h-full flex flex-col">
+                {/* Panel Header */}
+                <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-slate-800 text-base">Step Management</h2>
+                      <p className="text-xs text-slate-500">Add and configure steps</p>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Panel - Edit Panel (Step Flow Editor) */}
-        <div className="flex-1 min-w-[400px] bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
-          <div className="h-full flex flex-col">
-            {/* Panel Header */}
-            <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="font-bold text-slate-800 text-base">Edit Panel</h2>
-                  <p className="text-xs text-slate-500">Design your instruction flow</p>
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto bg-slate-50">
+                  <StepProperties />
                 </div>
               </div>
             </div>
-            {/* Content */}
-            <div className="flex-1 bg-slate-50">
-              <StepBuilder />
+
+            {/* Center Panel - 3D Preview */}
+            <div className="w-96 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+              <div className="h-full flex flex-col">
+                {/* Panel Header */}
+                <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-slate-800 text-base">3D Preview</h2>
+                      <p className="text-xs text-slate-500">Live model view</p>
+                    </div>
+                  </div>
+                </div>
+                {/* 3D Viewer Content */}
+                <div className="flex-1 relative bg-gradient-to-br from-slate-900 to-slate-800">
+                  <Viewer3D project={project} currentStepId={selectedStepId} nodePositions={nodePositions} cameraMode={cameraMode} />
+                  {!selectedStepId && project && project.steps.length > 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="bg-black/60 backdrop-blur-sm text-white px-6 py-4 rounded-xl shadow-2xl border border-white/10">
+                        <p className="text-center text-sm font-medium">Select a step to preview it in 3D</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+
+            {/* Right Panel - Edit Panel (Step Flow Editor) */}
+            <div className="flex-1 min-w-[400px] bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+              <div className="h-full flex flex-col">
+                {/* Panel Header */}
+                <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-slate-800 text-base">Model Builder</h2>
+                      <p className="text-xs text-slate-500">Design your 3D model flow</p>
+                    </div>
+                  </div>
+                </div>
+                {/* Content */}
+                <div className="flex-1 bg-slate-50">
+                  <StepBuilder />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

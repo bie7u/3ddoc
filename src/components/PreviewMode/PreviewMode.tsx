@@ -31,9 +31,17 @@ export const PreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: () => v
     );
   }
 
-  const currentStep = project.steps[currentPreviewStepIndex];
+  // Use guide order when a guide with entries exists; otherwise fall back to all steps
+  const guideSteps =
+    project.guide && project.guide.length > 0
+      ? project.guide
+          .map((gs) => project.steps.find((s) => s.id === gs.stepId))
+          .filter((s): s is NonNullable<typeof s> => s !== undefined)
+      : project.steps;
+
+  const currentStep = guideSteps[currentPreviewStepIndex];
   const canGoPrevious = currentPreviewStepIndex > 0;
-  const canGoNext = currentPreviewStepIndex < project.steps.length - 1;
+  const canGoNext = currentPreviewStepIndex < guideSteps.length - 1;
 
   const handlePrevious = () => {
     if (canGoPrevious) {
@@ -201,8 +209,8 @@ export const PreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: () => v
 
             <div className="text-center min-w-[140px] px-4">
               <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Step</div>
-              <div className="text-2xl font-bold text-blue-300" aria-label={`Step ${currentPreviewStepIndex + 1} of ${project.steps.length}`}>
-                {currentPreviewStepIndex + 1} / {project.steps.length}
+              <div className="text-2xl font-bold text-blue-300" aria-label={`Step ${currentPreviewStepIndex + 1} of ${guideSteps.length}`}>
+                {currentPreviewStepIndex + 1} / {guideSteps.length}
               </div>
             </div>
 
@@ -224,7 +232,7 @@ export const PreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: () => v
 
           {/* Step indicator dots */}
           <div className="mt-5 flex gap-2 justify-center pt-4 border-t border-white/10">
-            {project.steps.map((step, index) => (
+            {guideSteps.map((step, index) => (
               <button
                 key={step.id}
                 onClick={() => setCurrentPreviewStepIndex(index)}

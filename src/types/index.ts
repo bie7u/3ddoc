@@ -38,11 +38,17 @@ export interface InstructionStep {
   modelScale?: number;
 }
 
+export interface GuideStep {
+  id: string;
+  stepId: string;
+}
+
 export interface ProjectData {
   id: string;
   name: string;
   steps: InstructionStep[];
   connections: Edge<ConnectionData>[];
+  guide?: GuideStep[];
 }
 
 export type StepNode = Node<InstructionStep>;

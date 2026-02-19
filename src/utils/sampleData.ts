@@ -72,4 +72,12 @@ export const sampleProject: ProjectData = {
     // Custom model to final step
     { id: 'e4-5', source: 'step-4', target: 'step-5', data: { style: 'glow', description: 'Proceed to final quality check' } },
   ],
+  guide: [
+    { id: 'guide-1', stepId: 'step-1' },
+    { id: 'guide-2', stepId: 'step-2a' },
+    { id: 'guide-3', stepId: 'step-2b' },
+    { id: 'guide-4', stepId: 'step-3' },
+    { id: 'guide-5', stepId: 'step-4' },
+    { id: 'guide-6', stepId: 'step-5' },
+  ],
 };
