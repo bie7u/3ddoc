@@ -636,9 +636,10 @@ interface Viewer3DProps {
   currentStepId: string | null;
   nodePositions?: Record<string, { x: number; y: number }>;
   cameraMode?: 'auto' | 'free';
+  showStepOverlay?: boolean;
 }
 
-export const Viewer3D = ({ project, currentStepId, nodePositions = {}, cameraMode = 'auto' }: Viewer3DProps) => {
+export const Viewer3D = ({ project, currentStepId, nodePositions = {}, cameraMode = 'auto', showStepOverlay = true }: Viewer3DProps) => {
   const currentStep = project?.steps.find(s => s.id === currentStepId);
   const [selectedConnectionDesc, setSelectedConnectionDesc] = useState<string | null>(null);
   
@@ -682,7 +683,7 @@ export const Viewer3D = ({ project, currentStepId, nodePositions = {}, cameraMod
       </Canvas>
       
       {/* Overlay info */}
-      {currentStep && (
+      {showStepOverlay && currentStep && (
         <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white p-4 rounded-lg max-w-md">
           <h3 className="text-lg font-bold mb-2">{currentStep.title}</h3>
           <p className="text-sm">{currentStep.description}</p>

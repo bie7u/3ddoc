@@ -83,7 +83,7 @@ export const PreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: () => v
   return (
     <div className="w-full h-full relative bg-gradient-to-br from-slate-900 to-slate-800">
       {/* 3D Viewer */}
-      <Viewer3D project={project} currentStepId={currentStep.id} nodePositions={nodePositions} cameraMode={cameraMode} />
+      <Viewer3D project={project} currentStepId={currentStep.id} nodePositions={nodePositions} cameraMode={cameraMode} showStepOverlay={false} />
 
       {/* Copy notification toast */}
       {showCopyNotification && (
