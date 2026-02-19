@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useAppStore } from '../../store';
 import { UploadedModelCanvas } from './UploadedModelCanvas';
-import type { MeshPickResult, CameraSnapshot, MeshHighlight } from './UploadedModelCanvas';
+import type { MeshPickResult, CameraSnapshot } from './UploadedModelCanvas';
 import type { InstructionStep, CameraPosition } from '../../types';
 
 interface EditingState {
@@ -35,11 +35,6 @@ export const UploadModelEditor = () => {
   if (!project || !project.projectModelUrl) return null;
 
   const selectedStep = project.steps.find((s) => s.id === selectedStepId) ?? null;
-
-  // ── Mesh highlights for existing steps ──────────────────────────────────────
-  const stepHighlights: MeshHighlight[] = project.steps
-    .filter((s) => s.focusMeshName)
-    .map((s) => ({ name: s.focusMeshName!, color: s.highlightColor ?? '#4299e1' }));
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
@@ -221,7 +216,6 @@ export const UploadModelEditor = () => {
           <UploadedModelCanvas
             modelUrl={project.projectModelUrl}
             isPickMode={isPickMode}
-            stepHighlights={stepHighlights}
             focusedMeshName={focusedMeshName}
             onMeshPicked={handleMeshPicked}
             cameraStateRef={cameraStateRef}

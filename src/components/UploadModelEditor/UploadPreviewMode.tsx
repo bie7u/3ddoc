@@ -74,10 +74,10 @@ export const UploadPreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: (
     return { x: 5, y: 5, z: 5, targetX: 0, targetY: 0, targetZ: 0 };
   })();
 
-  // Highlight all steps' meshes; focus the current step's mesh
-  const stepHighlights: MeshHighlight[] = steps
-    .filter((s) => s.focusMeshName)
-    .map((s) => ({ name: s.focusMeshName!, color: s.highlightColor ?? '#4299e1' }));
+  // Only highlight the current step's mesh (not all steps)
+  const stepHighlights: MeshHighlight[] = currentStep.focusMeshName
+    ? [{ name: currentStep.focusMeshName, color: currentStep.highlightColor ?? '#4299e1' }]
+    : [];
 
   const focusedMeshName = currentStep.focusMeshName;
 
