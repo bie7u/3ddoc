@@ -99,8 +99,8 @@ function ProjectListPage() {
     setShowNewProjectDialog(true);
   };
 
-  const handleConfirmNewProject = (projectName: string) => {
-    createNewProject(projectName);
+  const handleConfirmNewProject = (projectName: string, projectType: 'builder' | 'upload', projectModelUrl?: string) => {
+    createNewProject(projectName, projectType, projectModelUrl);
     setViewMode('edit'); // Open in edit mode when creating new project
     setPreviewMode(false);
     setShowNewProjectDialog(false);

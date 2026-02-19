@@ -36,6 +36,9 @@ export interface InstructionStep {
   shapeType?: ShapeType;
   customModelUrl?: string;
   modelScale?: number;
+  // Upload-model specific: which mesh element this step focuses on
+  focusMeshName?: string;
+  focusPoint?: [number, number, number];
 }
 
 export interface GuideStep {
@@ -46,6 +49,8 @@ export interface GuideStep {
 export interface ProjectData {
   id: string;
   name: string;
+  projectType?: 'builder' | 'upload';
+  projectModelUrl?: string;
   steps: InstructionStep[];
   connections: Edge<ConnectionData>[];
   guide?: GuideStep[];

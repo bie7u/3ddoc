@@ -51,7 +51,7 @@ interface AppStore {
   loadFromLocalStorage: () => void;
   getAllProjects: () => SavedProject[];
   deleteProject: (projectId: string) => void;
-  createNewProject: (projectName: string) => ProjectData;
+  createNewProject: (projectName: string, projectType?: 'builder' | 'upload', projectModelUrl?: string) => ProjectData;
 }
 
 const STORAGE_KEY = '3ddoc-project';
@@ -291,10 +291,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
   },
 
-  createNewProject: (projectName: string) => {
+  createNewProject: (projectName: string, projectType?: 'builder' | 'upload', projectModelUrl?: string) => {
     const newProject: ProjectData = {
       id: `project-${crypto.randomUUID()}`,
       name: projectName,
+      projectType: projectType ?? 'builder',
+      projectModelUrl: projectModelUrl,
       steps: [],
       connections: [],
       guide: [],

@@ -5,6 +5,7 @@ import { Viewer3D } from '../Viewer3D/Viewer3D';
 import { StepProperties } from '../StepProperties/StepProperties';
 import { PreviewMode } from '../PreviewMode/PreviewMode';
 import { GuideBuilder } from '../GuideBuilder/GuideBuilder';
+import { UploadModelEditor, UploadPreviewMode } from '../UploadModelEditor';
 import { sampleProject } from '../../utils/sampleData';
 
 interface MainLayoutProps {
@@ -55,9 +56,63 @@ export const MainLayout = ({ onBackToProjectList, onGoToEditorPanel, useSamplePr
   };
 
   if (isPreviewMode) {
+    // Upload-type projects use a different preview mode
+    if (project?.projectType === 'upload') {
+      return (
+        <div className="w-screen h-screen">
+          <UploadPreviewMode onGoToEditorPanel={onGoToEditorPanel} />
+        </div>
+      );
+    }
     return (
       <div className="w-screen h-screen">
         <PreviewMode onGoToEditorPanel={onGoToEditorPanel} />
+      </div>
+    );
+  }
+
+  // Upload-type projects use a simpler editor
+  if (project?.projectType === 'upload') {
+    return (
+      <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
+        {/* Top Bar */}
+        <div className="h-16 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-between px-6 shadow-xl border-b border-slate-700">
+          <div className="flex items-center gap-4">
+            {onBackToProjectList && (
+              <button
+                onClick={onBackToProjectList}
+                className="px-4 py-2 bg-slate-700/50 backdrop-blur-sm rounded-lg hover:bg-slate-600/50 transition-all duration-200 flex items-center gap-2 border border-slate-600/30 shadow-lg"
+                title="Powrót do listy projektów"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm font-medium">Projekty</span>
+              </button>
+            )}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg" aria-hidden="true">
+                <span className="text-xl" role="img" aria-label="Upload">📤</span>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">3D Model Documentation</h1>
+                {project && (
+                  <span className="text-xs text-slate-300 font-medium">{project.name}</span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-lg border border-green-500/30 shadow-lg flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full shadow-lg shadow-green-400/50 motion-safe:animate-pulse" aria-hidden="true"></div>
+              <span className="text-sm font-medium text-green-300">Editor Mode</span>
+            </div>
+          </div>
+        </div>
+        {/* Content */}
+        <div className="flex-1 flex overflow-hidden gap-1 p-1">
+          <UploadModelEditor />
+        </div>
       </div>
     );
   }
