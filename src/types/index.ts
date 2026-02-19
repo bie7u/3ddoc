@@ -46,6 +46,8 @@ export interface GuideStep {
 export interface ProjectData {
   id: string;
   name: string;
+  projectType?: 'builder' | 'upload';
+  projectModelUrl?: string;
   steps: InstructionStep[];
   connections: Edge<ConnectionData>[];
   guide?: GuideStep[];
