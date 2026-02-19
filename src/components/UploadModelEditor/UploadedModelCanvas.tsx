@@ -301,6 +301,10 @@ export interface UploadedModelCanvasProps {
   stepTitle?: string;
   stepDescription?: string;
   stepIndex?: number;
+
+  // ── Display options ──
+  /** When false, hides the grid and uses enhanced preview lighting/atmosphere. Defaults to true. */
+  showGrid?: boolean;
 }
 
 export const UploadedModelCanvas = ({
@@ -315,6 +319,7 @@ export const UploadedModelCanvas = ({
   stepTitle,
   stepDescription,
   stepIndex,
+  showGrid = true,
 }: UploadedModelCanvasProps) => {
   // Blob URL conversion happens outside the Canvas so useGLTF always gets a valid URL
   const blobUrl = useBlobUrl(modelUrl);
@@ -333,9 +338,50 @@ export const UploadedModelCanvas = ({
 
       <Canvas shadows>
         <PerspectiveCamera makeDefault position={[5, 5, 5]} />
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[5, 10, 7.5]} intensity={0.8} castShadow />
-        <directionalLight position={[-5, 5, -5]} intensity={0.3} />
+
+        {/* Scene atmosphere – preview mode only */}
+        {!showGrid && (
+          <>
+            <color attach="background" args={['#0d1117']} />
+            <fog attach="fog" color="#0d1117" near={30} far={100} />
+          </>
+        )}
+
+        {/* Lighting */}
+        {!showGrid ? (
+          <>
+            <hemisphereLight color="#1e3a5f" groundColor="#0a0a1a" intensity={0.6} />
+            <directionalLight
+              position={[15, 25, 10]}
+              intensity={1.8}
+              castShadow
+              shadow-mapSize-width={2048}
+              shadow-mapSize-height={2048}
+              shadow-camera-near={0.5}
+              shadow-camera-far={200}
+              shadow-camera-left={-50}
+              shadow-camera-right={50}
+              shadow-camera-top={50}
+              shadow-camera-bottom={-50}
+            />
+            <directionalLight position={[-10, 10, -8]} intensity={0.4} color="#3366cc" />
+            <pointLight position={[0, 20, 0]} intensity={0.6} color="#6699ff" />
+          </>
+        ) : (
+          <>
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[5, 10, 7.5]} intensity={0.8} castShadow />
+            <directionalLight position={[-5, 5, -5]} intensity={0.3} />
+          </>
+        )}
+
+        {/* Ground plane receiving shadows in preview mode */}
+        {!showGrid && (
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]} receiveShadow>
+            <planeGeometry args={[300, 300]} />
+            <meshStandardMaterial color="#0d1117" roughness={0.9} metalness={0.1} />
+          </mesh>
+        )}
 
         <CameraController
           orbitRef={orbitRef}
@@ -362,7 +408,7 @@ export const UploadedModelCanvas = ({
           dampingFactor={0.05}
           enabled={cameraMode === 'free' || !targetCamera}
         />
-        <gridHelper args={[20, 20]} />
+        {showGrid && <gridHelper args={[20, 20]} />}
       </Canvas>
 
       {/* Step overlay — top-20 keeps it below the preview top-bar (~72px) */}

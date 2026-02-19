@@ -671,7 +671,7 @@ export const Viewer3D = ({ project, currentStepId, nodePositions = {}, cameraMod
         {/* Lighting */}
         {!showStepOverlay ? (
           <>
-            <hemisphereLight skyColor="#1e3a5f" groundColor="#0a0a1a" intensity={0.6} />
+            <hemisphereLight color="#1e3a5f" groundColor="#0a0a1a" intensity={0.6} />
             <directionalLight
               position={[15, 25, 10]}
               intensity={1.8}

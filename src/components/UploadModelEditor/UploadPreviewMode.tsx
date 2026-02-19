@@ -106,6 +106,7 @@ export const UploadPreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: (
         stepTitle={currentStep.title}
         stepDescription={currentStep.description}
         stepIndex={currentPreviewStepIndex}
+        showGrid={false}
       />
 
       {/* Copy notification */}
