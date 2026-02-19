@@ -660,10 +660,49 @@ export const Viewer3D = ({ project, currentStepId, nodePositions = {}, cameraMod
           />
         )}
         
+        {/* Scene background and fog in preview mode */}
+        {!showStepOverlay && (
+          <>
+            <color attach="background" args={['#0d1117']} />
+            <fog attach="fog" color="#0d1117" near={60} far={160} />
+          </>
+        )}
+
         {/* Lighting */}
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
-        <pointLight position={[-10, -10, -5]} intensity={0.5} />
+        {!showStepOverlay ? (
+          <>
+            <hemisphereLight skyColor="#1e3a5f" groundColor="#0a0a1a" intensity={0.6} />
+            <directionalLight
+              position={[15, 25, 10]}
+              intensity={1.8}
+              castShadow
+              shadow-mapSize-width={2048}
+              shadow-mapSize-height={2048}
+              shadow-camera-near={0.5}
+              shadow-camera-far={200}
+              shadow-camera-left={-50}
+              shadow-camera-right={50}
+              shadow-camera-top={50}
+              shadow-camera-bottom={-50}
+            />
+            <directionalLight position={[-10, 10, -8]} intensity={0.4} color="#3366cc" />
+            <pointLight position={[0, 20, 0]} intensity={0.6} color="#6699ff" />
+          </>
+        ) : (
+          <>
+            <ambientLight intensity={0.5} />
+            <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
+            <pointLight position={[-10, -10, -5]} intensity={0.5} />
+          </>
+        )}
+
+        {/* Ground plane receiving shadows in preview mode */}
+        {!showStepOverlay && (
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]} receiveShadow>
+            <planeGeometry args={[300, 300]} />
+            <meshStandardMaterial color="#0d1117" roughness={0.9} metalness={0.1} />
+          </mesh>
+        )}
         
         {/* Unified 3D Model with all steps */}
         {project && (
@@ -675,8 +714,8 @@ export const Viewer3D = ({ project, currentStepId, nodePositions = {}, cameraMod
           />
         )}
         
-        {/* Grid helper */}
-        <gridHelper args={[20, 20]} />
+        {/* Grid helper - only in editor mode */}
+        {showStepOverlay && <gridHelper args={[20, 20]} />}
         
         {/* Controls - always enabled for free camera movement */}
         <OrbitControls enableDamping dampingFactor={0.05} />
