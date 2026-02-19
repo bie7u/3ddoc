@@ -1,11 +1,77 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from './components/Layout';
 import { ProjectList } from './components/ProjectList';
 import { NewProjectDialog } from './components/ProjectList/NewProjectDialog';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAppStore, type SavedProject } from './store';
 
-function App() {
+// Component to handle direct project view via URL
+function ProjectViewer() {
+  const { projectId } = useParams<{ projectId: string }>();
+  const navigate = useNavigate();
+  const { setProject, getAllProjects, setPreviewMode, setViewMode } = useAppStore();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (projectId) {
+      const projects = getAllProjects();
+      const foundProject = projects.find(p => p.project.id === projectId);
+      
+      if (foundProject) {
+        setProject(foundProject.project, foundProject.nodePositions);
+        setViewMode('view');
+        setPreviewMode(true);
+        setIsLoading(false);
+      } else {
+        setError('Project not found');
+        setIsLoading(false);
+      }
+    }
+  }, [projectId, getAllProjects, setProject, setPreviewMode, setViewMode]);
+
+  if (isLoading) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="text-white text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg">Loading project...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="text-white text-center">
+          <div className="text-6xl mb-4">❌</div>
+          <h2 className="text-2xl font-bold mb-2">Project Not Found</h2>
+          <p className="text-slate-300 mb-6">{error}</p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+          >
+            Go to Project List
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ErrorBoundary>
+      <MainLayout 
+        onBackToProjectList={() => navigate('/')}
+        useSampleProjectFallback={false} 
+      />
+    </ErrorBoundary>
+  );
+}
+
+// Main app component with project list
+function ProjectListPage() {
   const [showProjectList, setShowProjectList] = useState(true);
   const [showEditorPanel, setShowEditorPanel] = useState(false);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
@@ -104,6 +170,15 @@ function App() {
         useSampleProjectFallback={false} 
       />
     </ErrorBoundary>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<ProjectListPage />} />
+      <Route path="/view/:projectId" element={<ProjectViewer />} />
+    </Routes>
   );
 }
 

@@ -22,9 +22,7 @@ export const MainLayout = ({ onBackToProjectList, onGoToEditorPanel, useSamplePr
     loadFromLocalStorage,
     nodePositions,
     cameraMode,
-    setCameraMode,
-    viewMode,
-    setViewMode
+    setCameraMode
   } = useAppStore();
 
   // Load project on mount

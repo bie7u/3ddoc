@@ -8,6 +8,7 @@ A frontend-only web application for creating step-by-step interactive 3D instruc
 - **3D Viewer**: Real-time 3D model preview using React Three Fiber with smooth camera transitions
 - **Step Properties Editor**: Edit step details including title, description, and highlight colors
 - **Preview Mode**: Navigate through steps with smooth camera transitions and step-by-step guidance
+- **Direct Link Sharing**: Share projects via URL for instant preview mode access
 - **Local Persistence**: Automatic saving to browser localStorage
 - **Sample Project**: Includes example project with pre-configured steps
 
@@ -17,6 +18,7 @@ A frontend-only web application for creating step-by-step interactive 3D instruc
 - **Vite** - Fast build tool and dev server
 - **React Three Fiber** - 3D rendering with Three.js
 - **React Flow** - Node-based visual editor
+- **React Router** - URL routing for direct link access
 - **Zustand** - State management
 - **Tailwind CSS** - Styling
 
@@ -87,7 +89,19 @@ The application is divided into three main panels:
 - Navigate through steps using Previous/Next buttons
 - Jump to any step using the step indicator dots
 - Camera smoothly transitions between step viewpoints
+- **Share your project**: Click the "Share Link" button to copy a direct access URL
+- Shared links open projects directly in preview mode
 - Exit preview to return to editing mode
+
+### Sharing Projects
+
+1. Open your project in Preview Mode
+2. Click the "Share Link" button (purple button in top-right corner)
+3. The shareable URL is automatically copied to your clipboard
+4. Share the link with others to let them view your presentation
+5. Recipients can access the project directly via the link (format: `/view/{projectId}`)
+
+**Note**: Projects are stored in browser localStorage, so shared links will only work if the project exists in the recipient's localStorage. For persistent sharing across different browsers, you'll need to export and import the project data.
 
 ### Data Persistence
 
