@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../../store';
 import { UploadedModelCanvas } from '../UploadModelEditor/UploadedModelCanvas';
+import type { MeshHighlight } from '../UploadModelEditor/UploadedModelCanvas';
 
 export const UploadPreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: () => void }) => {
   const {
@@ -11,6 +12,7 @@ export const UploadPreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: (
     viewMode,
   } = useAppStore();
   const [showCopyNotification, setShowCopyNotification] = useState(false);
+  const [cameraMode, setCameraMode] = useState<'auto' | 'free'>('auto');
 
   if (!project || !project.projectModelUrl) {
     return (
@@ -50,6 +52,35 @@ export const UploadPreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: (
   const canGoPrevious = currentPreviewStepIndex > 0;
   const canGoNext = currentPreviewStepIndex < steps.length - 1;
 
+  // Build camera target for auto animation:
+  // prefer the step's stored camera position (if target coordinates are defined),
+  // fall back to orbiting around the focusPoint
+  const targetCamera = (() => {
+    const cam = currentStep.cameraPosition;
+    if (cam && cam.targetX !== undefined && cam.targetY !== undefined && cam.targetZ !== undefined) {
+      return cam;
+    }
+    if (currentStep.focusPoint) {
+      const [fx, fy, fz] = currentStep.focusPoint;
+      return {
+        x: fx + 5,
+        y: fy + 5,
+        z: fz + 5,
+        targetX: fx,
+        targetY: fy,
+        targetZ: fz,
+      };
+    }
+    return { x: 5, y: 5, z: 5, targetX: 0, targetY: 0, targetZ: 0 };
+  })();
+
+  // Highlight all steps' meshes; focus the current step's mesh
+  const stepHighlights: MeshHighlight[] = steps
+    .filter((s) => s.focusMeshName)
+    .map((s) => ({ name: s.focusMeshName!, color: s.highlightColor ?? '#4299e1' }));
+
+  const focusedMeshName = currentStep.focusMeshName;
+
   const handleShareLink = async () => {
     if (project) {
       const shareUrl = `${window.location.origin}/view/${project.id}`;
@@ -65,9 +96,13 @@ export const UploadPreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: (
 
   return (
     <div className="w-full h-full relative bg-gradient-to-br from-slate-900 to-slate-800">
-      {/* 3D Viewer with current step info */}
+      {/* 3D Viewer with camera tracking */}
       <UploadedModelCanvas
         modelUrl={project.projectModelUrl}
+        cameraMode={cameraMode}
+        targetCamera={targetCamera}
+        stepHighlights={stepHighlights}
+        focusedMeshName={focusedMeshName}
         stepTitle={currentStep.title}
         stepDescription={currentStep.description}
         stepIndex={currentPreviewStepIndex}
@@ -86,6 +121,38 @@ export const UploadPreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: (
       {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-md border-b border-white/10 z-10">
         <div className="px-6 py-4 flex items-center justify-between">
+          {/* Camera mode toggle */}
+          <div className="flex items-center gap-3 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/10 shadow-xl">
+            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span className="text-sm font-semibold text-white">Kamera:</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCameraMode('auto')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  cameraMode === 'auto'
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
+                    : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                }`}
+              >
+                Auto
+              </button>
+              <button
+                onClick={() => setCameraMode('free')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  cameraMode === 'free'
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
+                    : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                }`}
+              >
+                Swobodna
+              </button>
+            </div>
+          </div>
+
+          {/* Mode indicator */}
           <div className="flex items-center gap-3 bg-gradient-to-r from-green-500/20 to-emerald-600/20 backdrop-blur-sm px-6 py-2 rounded-xl border border-green-400/30 shadow-xl">
             <div className="w-2 h-2 bg-green-400 rounded-full motion-safe:animate-pulse" aria-hidden="true"></div>
             <span className="text-sm font-bold text-white">Podgląd modelu</span>
@@ -187,3 +254,4 @@ export const UploadPreviewMode = ({ onGoToEditorPanel }: { onGoToEditorPanel?: (
     </div>
   );
 };
+
